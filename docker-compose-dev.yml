@@ -1,0 +1,17 @@
+version: '3.0'
+
+services:
+  database:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USERNAME=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - 5433:5432
+  redis:
+    image: redis:8.0-rc1-alpine
+    container_name: redis
+    ports:
+      - 6378:6379

@@ -40,7 +40,7 @@ export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
               Xác thực địa chỉ email của bạn
             </Heading>
 
-            <Text className="text-gray-600 text-base leading-relaxed my-4">
+            <Text className="text-gray-600 text-base leading-relaxed my-4 text-center">
               Cảm ơn bạn đã đăng ký. Vui lòng sử dụng mã OTP dưới đây để hoàn
               tất việc xác thực tài khoản:
             </Text>

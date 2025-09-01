@@ -18,7 +18,7 @@ interface VerifyEmailProps {
 }
 
 const logoUrl =
-  'https://static.wixstatic.com/media/74dca5_21d0c05c40b34ea89ca93217adfa8269~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg';
+  'https://logos-world.net/wp-content/uploads/2020/05/Zara-Logo.png';
 
 export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
   return (

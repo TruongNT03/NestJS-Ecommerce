@@ -36,7 +36,7 @@ export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
               className="mx-auto"
             />
 
-            <Heading className="text-2xl font-semibold text-center text-gray-800 mt-6">
+            <Heading className="text-2xl font-semibold text-center text-gray-800 mt-6 text-center">
               Xác thực địa chỉ email của bạn
             </Heading>
 

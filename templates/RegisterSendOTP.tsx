@@ -32,7 +32,7 @@ export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
               src={logoUrl}
               width="48"
               height="48"
-              alt="Logo Công Ty"
+              alt="Logo"
               className="mx-auto"
             />
 

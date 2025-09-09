@@ -24,4 +24,30 @@ export class MailService {
       html: htmlContent,
     });
   }
+
+  async sendForgotPasswordMail(
+    otp: string,
+    receiverEmail: string,
+  ): Promise<void> {
+    const senderEmail = this.configService.get('MAIL_USER');
+    const htmlContent = await render(
+      RegisterSendOTP({ verificationCode: otp }),
+    );
+    this.transporter.sendMail({
+      subject: 'Forgot password OTP',
+      from: `My Shop <${senderEmail}>`,
+      to: receiverEmail,
+      html: htmlContent,
+    });
+  }
+
+  async sendNewPassword(newPassword: string, receiverEmail: string) {
+    const senderEmail = this.configService.get('MAIL_USER');
+    this.transporter.sendMail({
+      subject: 'New password',
+      from: `My Shop <${senderEmail}>`,
+      to: receiverEmail,
+      html: `<div>New password: ${newPassword} </div>`,
+    });
+  }
 }

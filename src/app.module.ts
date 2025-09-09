@@ -4,11 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import databaseConfiguration from './config/database.config';
-import { APP_FILTER } from '@nestjs/core';
-import { AllExceptionFilter } from './exceptions/http-exception.filter';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { AllExceptionFilter } from './exceptions/all-exception.filter';
 import { RedisModule } from './modules/shared/redis/redis.module';
 import { MailModule } from './modules/shared/mail/mail.module';
 import mailConfig from './config/mail.config';
+import { JwtGuard } from './modules/auth/guard/jwt.guard';
 
 @Module({
   imports: [
@@ -34,6 +35,10 @@ import mailConfig from './config/mail.config';
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
     },
   ],
 })

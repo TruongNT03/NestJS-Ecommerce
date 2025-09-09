@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import * as _ from 'lodash';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
@@ -12,7 +13,10 @@ import { convertErrorToObject } from 'src/common/utils/error.util';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+  constructor(
+    private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly configService: ConfigService,
+  ) {}
   catch(exception: any, host: ArgumentsHost) {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
@@ -42,7 +46,11 @@ export class AllExceptionFilter implements ExceptionFilter {
         details: convertErrorToObject(exception),
       });
     }
-
+    const isDevelopment =
+      this.configService.get<string>('IS_DEVELOPMENT') === 'true';
+    if (isDevelopment) {
+      _.omit(errorData, ['details']);
+    }
     httpAdapter.reply(ctx.getResponse(), errorData, httpStatus);
   }
 }

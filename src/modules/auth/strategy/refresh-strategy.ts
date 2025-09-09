@@ -1,17 +1,17 @@
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JWT_SECRET } from '../auth.constants';
 import { JwtPayload, TokenType, UserRequestPayload } from '../auth.interface';
-import { RedisService } from 'src/modules/shared/redis/redis.service';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
-import { Injectable } from '@nestjs/common';
+import { RedisService } from 'src/modules/shared/redis/redis.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   constructor(
     private readonly redisService: RedisService,
     @InjectRepository(User)
@@ -24,11 +24,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
   async validate(payload: JwtPayload): Promise<UserRequestPayload> {
     const { id, email, jti, role, type } = payload;
-    if (type !== TokenType.ACCESS_TOKEN) {
+    if (type !== TokenType.REFRESH_TOKEN) {
       throw new ServerException(ERROR_RESPONSE.INVALID_TOKEN_USAGE);
     }
+
     const userTokenKey = this.redisService.getUserTokenKey(id, jti);
-    const isValidToken = await this.redisService.getValue(userTokenKey);
+    const isValidToken = this.redisService.getValue(userTokenKey);
     if (!isValidToken) {
       throw new ServerException(ERROR_RESPONSE.UNAUTHORIZED);
     }

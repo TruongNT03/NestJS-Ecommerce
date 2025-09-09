@@ -8,7 +8,7 @@ export class RedisService {
   async setValue<T = any>(
     key: string,
     value: T,
-    ttlSeconds?: number,
+    ttlSeconds?: number | string,
   ): Promise<void> {
     const serialized =
       typeof value === 'string' ? value : JSON.stringify(value);
@@ -33,7 +33,26 @@ export class RedisService {
     await this.redis.del(key);
   }
 
+  async deleteByPattern(pattern: string): Promise<void> {
+    const keys = await this.redis.keys(pattern);
+    for (let key of keys) {
+      await this.deleteKey(key);
+    }
+  }
+
   getRegisterKey(token: string): string {
     return `register:${token}`;
+  }
+
+  getUserTokenKey(userId: string, jti: string) {
+    return `userId:${userId}:token:${jti}`;
+  }
+
+  getUserPatternKey(userId: string) {
+    return `userId:${userId}:token:*`;
+  }
+
+  getForgotPasswordKey(token: string, userId: string) {
+    return `userId:${userId}:token:${token}`;
   }
 }

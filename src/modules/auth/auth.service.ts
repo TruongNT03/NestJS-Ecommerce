@@ -38,6 +38,7 @@ import { S3Service } from '../shared/s3/s3.service';
 import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UserShareService } from '../user/user-share.service';
+import { UpdateProfileDto } from './dto/request/update-profile.dto';
 
 @Injectable()
 export class AuthService extends BaseService {
@@ -274,5 +275,12 @@ export class AuthService extends BaseService {
       contentType,
       BucketFolder.AVATAR,
     );
+  }
+
+  async updateProfile(
+    user: UserRequestPayload,
+    dto: UpdateProfileDto,
+  ): Promise<SaveEntityResponseDto> {
+    return await this.userShareService.updateProfile(user, dto);
   }
 }

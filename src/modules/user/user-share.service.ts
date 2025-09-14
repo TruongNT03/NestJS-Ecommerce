@@ -10,6 +10,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SaveEntityResponseDto } from 'src/common/dto/save-entity-response.dto';
 import { RoleEntity } from 'src/entities/role.entity';
 import { RoleType } from 'src/common/enum/role.enum';
+import { UserRequestPayload } from '../auth/auth.interface';
+import { UpdateProfileDto } from '../auth/dto/request/update-profile.dto';
 
 @Injectable()
 export class UserShareService {
@@ -54,6 +56,22 @@ export class UserShareService {
 
     return {
       id: user.id,
+    };
+  }
+
+  async updateProfile(
+    user: UserRequestPayload,
+    dto: UpdateProfileDto,
+  ): Promise<SaveEntityResponseDto> {
+    const userEntity = await this.findOne(user.id);
+    await this.userRepo.update(
+      { id: userEntity.id },
+      {
+        ...dto,
+      },
+    );
+    return {
+      id: userEntity.id,
     };
   }
 }

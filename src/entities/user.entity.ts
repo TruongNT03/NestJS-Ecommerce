@@ -27,6 +27,9 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   @Column()
   lastName: string;
 
+  @Column()
+  avatar: string;
+
   @Exclude()
   @Column()
   password: string;

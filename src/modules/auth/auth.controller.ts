@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/request/register.dto';
 import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
@@ -22,6 +22,7 @@ import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
+import { UpdateProfileDto } from './dto/request/update-profile.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -123,5 +124,17 @@ export class AuthController {
   @Post('upload')
   async uploadAvatar(@Body() body: UploadDto): Promise<UploadResponseDto> {
     return await this.authService.upload(body);
+  }
+
+  @Role([RoleType.ADMIN, RoleType.USER])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update profile' })
+  @ApiResponse({ status: 201, type: SaveEntityResponseDto })
+  @Put('update-profile')
+  async updateProfile(
+    @User() user: UserRequestPayload,
+    @Body() body: UpdateProfileDto,
+  ): Promise<SaveEntityResponseDto> {
+    return await this.authService.updateProfile(user, body);
   }
 }

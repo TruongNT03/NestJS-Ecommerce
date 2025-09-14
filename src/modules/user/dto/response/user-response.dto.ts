@@ -4,21 +4,25 @@ import { RoleResponseDto } from './role-response.dto';
 
 @Exclude()
 export class UserResponseDto {
-  @ApiProperty()
   @Expose()
+  @ApiProperty()
   id: string;
 
-  @ApiProperty()
   @Expose()
+  @ApiProperty()
   email: string;
 
-  @ApiProperty()
   @Expose()
+  @ApiProperty()
   firstName: string;
 
-  @ApiProperty()
   @Expose()
+  @ApiProperty()
   lastName: string;
+
+  @Expose()
+  @ApiProperty()
+  avatar: string;
 
   @ApiProperty({ type: [RoleResponseDto] })
   @Expose()

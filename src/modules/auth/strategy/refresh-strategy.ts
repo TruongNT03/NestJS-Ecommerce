@@ -7,15 +7,15 @@ import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
 import { RedisService } from 'src/modules/shared/redis/redis.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   constructor(
     private readonly redisService: RedisService,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -23,7 +23,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     });
   }
   async validate(payload: JwtPayload): Promise<UserRequestPayload> {
-    const { id, email, jti, role, type } = payload;
+    const { id, email, jti, roles, type } = payload;
     if (type !== TokenType.REFRESH_TOKEN) {
       throw new ServerException(ERROR_RESPONSE.INVALID_TOKEN_USAGE);
     }
@@ -43,7 +43,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
       id,
       email,
       jti,
-      role,
+      roles,
     };
   }
 }

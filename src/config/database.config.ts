@@ -1,9 +1,8 @@
 import { registerAs } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import 'dotenv/config';
 
-export const databaseConfig: TypeOrmModuleOptions = {
+export const databaseConfig = {
   type: process.env.DATABASE_TYPE as any,
   host: process.env.DATABASE_HOST || '',
   port: parseInt(process.env.DATABASE_PORT || '5432', 10),

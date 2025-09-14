@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/request/register.dto';
 import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
-import { UserService } from '../user/user.service';
 import { MailService } from '../shared/mail/mail.service';
 import { generateOTP } from 'src/common/utils/otp-generate.util';
 import { RedisService } from '../shared/redis/redis.service';
@@ -16,7 +15,7 @@ import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload, TokenType, UserRequestPayload } from './auth.interface';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { convertDatePatternToSecond } from '../../common/utils/convert-date-pattern-to-minisecond.util';
@@ -28,22 +27,32 @@ import { Repository } from 'typeorm';
 import { UserResponseDto } from '../user/dto/response/user-response.dto';
 import { ForgotPasswordDto } from './dto/request/forgot-password.dto';
 import { ForgotPasswordResponseDto } from './dto/response/forgot-password-response.dto';
-import { verifyForgotPasswordDto } from './dto/request/verify-forgot-password.dto';
+import { VerifyForgotPasswordDto } from './dto/request/verify-forgot-password.dto';
 import { passwordGenerate } from 'src/common/utils/password-generate.util';
 import { ChangePasswordDto } from './dto/request/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/response/change-password-response.dto';
+import { BaseService } from 'src/base.service';
+import { UploadDto } from 'src/common/dto/upload.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { S3Service } from '../shared/s3/s3.service';
+import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
+import { RoleType } from 'src/common/enum/role.enum';
+import { UserShareService } from '../user/user-share.service';
 
 @Injectable()
-export class AuthService {
+export class AuthService extends BaseService {
   constructor(
-    private readonly userService: UserService,
+    private readonly userShareService: UserShareService,
     private readonly mailService: MailService,
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-  ) {}
+    private readonly s3Service: S3Service,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
+  ) {
+    super();
+  }
 
   async register(dto: RegisterDto): Promise<RegisterResponseDto> {
     const { email, password } = dto;
@@ -76,7 +85,7 @@ export class AuthService {
       throw new ServerException(ERROR_RESPONSE.OTP_INVALID);
     }
     await this.redisService.deleteKey(redisKey);
-    return await this.userService.create({
+    return await this.userShareService.create({
       email: redisValue.email,
       password: redisValue.password,
     });
@@ -84,7 +93,10 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = dto;
-    const user = await this.userRepo.findOneBy({ email });
+    const user = await this.userRepo.findOne({
+      where: { email },
+      relations: ['roles'],
+    });
     if (!user) {
       throw new ServerException(ERROR_RESPONSE.USER_NOT_FOUND);
     }
@@ -98,17 +110,16 @@ export class AuthService {
     const { id, jti } = user;
     const userTokenKey = this.redisService.getUserTokenKey(id, jti);
     await this.redisService.deleteKey(userTokenKey);
-    return {
-      success: true,
-    };
+    return this.suceesResponse();
   }
 
-  async manageUserToken(user: User): Promise<LoginResponseDto> {
+  async manageUserToken(user: UserEntity): Promise<LoginResponseDto> {
     const jti = v4();
     const payload: Partial<JwtPayload> = {
       id: user.id,
       email: user.email,
       jti: jti,
+      roles: user.roles.map((role) => role.name) as RoleType[],
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -150,7 +161,10 @@ export class AuthService {
   }
 
   async getProfile(id: string): Promise<UserResponseDto> {
-    return plainToInstance(UserResponseDto, await this.userService.findOne(id));
+    return plainToInstance(
+      UserResponseDto,
+      await this.userShareService.findOne(id),
+    );
   }
 
   async refreshToken(user: JwtPayload): Promise<RefreshTokenResponseDto> {
@@ -160,7 +174,7 @@ export class AuthService {
       email: user.email,
       jti,
       type: TokenType.ACCESS_TOKEN,
-      role: user.role,
+      roles: user.roles,
     };
     const userTokenKey = this.redisService.getUserTokenKey(user.id, jti);
     await this.redisService.setValue(
@@ -203,7 +217,7 @@ export class AuthService {
 
   async verifyForgotPassword(
     token: string,
-    dto: verifyForgotPasswordDto,
+    dto: VerifyForgotPasswordDto,
   ): Promise<SuccessReponseDto> {
     const { OTP } = dto;
     const redisValue = await this.redisService.getValue(token);
@@ -226,9 +240,8 @@ export class AuthService {
 
     const userPatternKey = this.redisService.getUserPatternKey(user.id);
     await this.redisService.deleteByPattern(userPatternKey);
-    return {
-      success: true,
-    };
+
+    return this.suceesResponse();
   }
 
   async changePassword(
@@ -249,6 +262,17 @@ export class AuthService {
     const userPatternKey = this.redisService.getUserPatternKey(id);
     await this.redisService.deleteByPattern(userPatternKey);
 
-    return await this.manageUserToken(await this.userRepo.findOneBy({ id }));
+    return await this.manageUserToken(
+      await this.userRepo.findOne({ where: { id }, relations: ['roles'] }),
+    );
+  }
+
+  async upload(dto: UploadDto): Promise<UploadResponseDto> {
+    const { fileName, contentType } = dto;
+    return await this.s3Service.getPresign(
+      fileName,
+      contentType,
+      BucketFolder.AVATAR,
+    );
   }
 }

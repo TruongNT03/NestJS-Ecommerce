@@ -41,4 +41,9 @@ export const ERROR_RESPONSE = {
     errorCode: 'invalid_token_usage',
     message: 'Invalid token type',
   },
+  ROLE_REQUIRED: {
+    statusCode: HttpStatus.FORBIDDEN,
+    errorCode: 'forbidden',
+    message: 'Role is required',
+  },
 };

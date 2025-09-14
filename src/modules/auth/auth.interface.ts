@@ -1,7 +1,9 @@
+import { RoleType } from 'src/common/enum/role.enum';
+
 export interface JwtPayload {
   id: string;
   email: string;
-  role?: string[];
+  roles?: RoleType[];
   jti: string;
   type: TokenType;
 }
@@ -9,7 +11,7 @@ export interface JwtPayload {
 export interface UserRequestPayload {
   id: string;
   email: string;
-  role?: string[];
+  roles?: RoleType[];
   jti: string;
 }
 

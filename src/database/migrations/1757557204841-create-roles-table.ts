@@ -1,27 +1,21 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateUsersTable1756559808493 implements MigrationInterface {
+export class CreateRolesTable1757557204841 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.createTable(
       new Table({
-        name: 'users',
+        name: 'roles',
         columns: [
           {
             name: 'id',
-            type: 'uuid',
+            type: 'int',
             isPrimary: true,
             isUnique: true,
             isGenerated: true,
-            generationStrategy: 'uuid',
+            generationStrategy: 'increment',
           },
           {
-            name: 'email',
-            type: 'varchar',
-            length: '255',
-          },
-          {
-            name: 'password',
+            name: 'name',
             type: 'varchar',
             length: '255',
           },
@@ -46,6 +40,6 @@ export class CreateUsersTable1756559808493 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('users');
+    await queryRunner.dropTable('roles');
   }
 }

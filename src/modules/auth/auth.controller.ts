@@ -14,10 +14,14 @@ import { RefreshTokenResponseDto } from './dto/response/refresh-token-response.d
 import { UserResponseDto } from '../user/dto/response/user-response.dto';
 import { ForgotPasswordDto } from './dto/request/forgot-password.dto';
 import { ForgotPasswordResponseDto } from './dto/response/forgot-password-response.dto';
-import { verifyForgotPasswordDto } from './dto/request/verify-forgot-password.dto';
+import { VerifyForgotPasswordDto } from './dto/request/verify-forgot-password.dto';
 import { SaveEntityResponseDto } from 'src/common/dto/save-entity-response.dto';
 import { ChangePasswordDto } from './dto/request/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/response/change-password-response.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadDto } from 'src/common/dto/upload.dto';
+import { Role } from 'src/decorators/role.decorator';
+import { RoleType } from 'src/common/enum/role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -50,6 +54,7 @@ export class AuthController {
     return await this.authService.login(body);
   }
 
+  @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout account' })
   @ApiResponse({ status: 200, type: SuccessReponseDto })
@@ -58,6 +63,7 @@ export class AuthController {
     return await this.authService.logout(user);
   }
 
+  @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get my profile' })
   @ApiResponse({ status: 200, type: UserResponseDto })
@@ -66,6 +72,7 @@ export class AuthController {
     return await this.authService.getProfile(user.id);
   }
 
+  @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Refresh token' })
   @ApiResponse({ status: 201, type: RefreshTokenResponseDto })
@@ -83,7 +90,6 @@ export class AuthController {
   async forgotPassword(
     @Body() body: ForgotPasswordDto,
   ): Promise<ForgotPasswordResponseDto> {
-    console.log(body);
     return await this.authService.forgotPassword(body);
   }
 
@@ -92,12 +98,13 @@ export class AuthController {
   @ApiResponse({ status: 201, type: SuccessReponseDto })
   @Post('forgot-password/verify/:token')
   async verifyForgotPassword(
-    @Body() body: verifyForgotPasswordDto,
+    @Body() body: VerifyForgotPasswordDto,
     @Param('token') token: string,
   ): Promise<SuccessReponseDto> {
     return await this.authService.verifyForgotPassword(token, body);
   }
 
+  @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Change password' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
@@ -107,5 +114,14 @@ export class AuthController {
     @Body() body: ChangePasswordDto,
   ): Promise<ChangePasswordResponseDto> {
     return await this.authService.changePassword(user, body);
+  }
+
+  @Role([RoleType.USER, RoleType.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Upload avatar' })
+  @ApiResponse({ status: 200, type: UploadResponseDto })
+  @Post('upload')
+  async uploadAvatar(@Body() body: UploadDto): Promise<UploadResponseDto> {
+    return await this.authService.upload(body);
   }
 }

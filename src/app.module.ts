@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigType } from '@nestjs/config';
+import { ConfigModule, ConfigService, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -10,6 +10,9 @@ import { RedisModule } from './modules/shared/redis/redis.module';
 import { MailModule } from './modules/shared/mail/mail.module';
 import mailConfig from './config/mail.config';
 import { JwtGuard } from './modules/auth/guard/jwt.guard';
+import { WinstonModule } from 'nest-winston';
+import { S3Module } from './modules/shared/s3/s3.module';
+import { RoleGuard } from './modules/auth/guard/role.guard';
 
 @Module({
   imports: [
@@ -25,10 +28,15 @@ import { JwtGuard } from './modules/auth/guard/jwt.guard';
         return databaseConfig;
       },
     }),
+    WinstonModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: () => ({}),
+    }),
     UserModule,
     AuthModule,
     RedisModule,
     MailModule,
+    S3Module,
   ],
   controllers: [],
   providers: [
@@ -39,6 +47,10 @@ import { JwtGuard } from './modules/auth/guard/jwt.guard';
     {
       provide: APP_GUARD,
       useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
     },
   ],
 })

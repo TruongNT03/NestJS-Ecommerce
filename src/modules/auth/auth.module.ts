@@ -9,7 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt-strategy';
 import { RefreshStrategy } from './strategy/refresh-strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities/user.entity';
+import { S3Module } from '../shared/s3/s3.module';
 
 @Module({
   imports: [
@@ -20,10 +21,11 @@ import { User } from 'src/entities/user.entity';
         secret: configService.get<string>('JWT_SECRET'),
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([UserEntity]),
     UserModule,
     MailModule,
     RedisModule,
+    S3Module,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RefreshStrategy],

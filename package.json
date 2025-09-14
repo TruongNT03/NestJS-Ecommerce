@@ -16,6 +16,10 @@
     "migrate:create": "typeorm-ts-node-commonjs migration:create",
     "migrate:run": "typeorm-ts-node-commonjs migration:run -d dataSourceConfig",
     "migrate:revert": "typeorm-ts-node-commonjs migration:revert -d dataSourceConfig",
+    "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js src/config -r datasourceConfig",
+    "seed:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-seeding/dist/cli.js seed -r datasourceConfig",
+    "seed:runOne": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-seeding/dist/cli.js seed -r datasourceConfig -s",
+    "command:run": "node dist/src/cli",
     "email:dev": "email dev --dir templates -p 3001",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -24,6 +28,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.887.0",
+    "@aws-sdk/s3-request-presigner": "^3.887.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -43,6 +49,8 @@
     "dotenv": "^17.2.1",
     "ioredis": "^5.7.0",
     "lodash": "^4.17.21",
+    "nest-commander": "^3.19.1",
+    "nest-winston": "^1.10.2",
     "nodemailer": "^7.0.6",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -54,7 +62,9 @@
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
-    "uuid": "^11.1.0"
+    "typeorm-seeding": "^1.6.1",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -62,7 +72,6 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
-    "@react-email/preview-server": "^4.2.8",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/bcrypt": "^6.0.0",

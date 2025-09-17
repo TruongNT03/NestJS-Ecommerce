@@ -13,6 +13,8 @@ import { JwtGuard } from './modules/auth/guard/jwt.guard';
 import { WinstonModule } from 'nest-winston';
 import { S3Module } from './modules/shared/s3/s3.module';
 import { RoleGuard } from './modules/auth/guard/role.guard';
+import { NotificationModule } from './modules/notification/notification.module';
+import { AdminUserModule } from './modules/admin/admin-user/admin-user.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { RoleGuard } from './modules/auth/guard/role.guard';
     RedisModule,
     MailModule,
     S3Module,
+    NotificationModule,
+    AdminUserModule,
   ],
   controllers: [],
   providers: [

@@ -39,6 +39,7 @@ import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UserShareService } from '../user/user-share.service';
 import { UpdateProfileDto } from './dto/request/update-profile.dto';
+import { NotificationService } from 'src/modules/notification/notification.service';
 
 @Injectable()
 export class AuthService extends BaseService {
@@ -51,6 +52,7 @@ export class AuthService extends BaseService {
     private readonly s3Service: S3Service,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    private readonly notificationService: NotificationService,
   ) {
     super();
   }
@@ -162,6 +164,15 @@ export class AuthService extends BaseService {
   }
 
   async getProfile(id: string): Promise<UserResponseDto> {
+    await this.notificationService.create({
+      alertTo: RoleType.USER,
+      userId: id,
+      meta: { text: 'Hello' },
+      content: 'Content',
+      navigateTo: 'Navigate to',
+      title: 'Title',
+      triggerBy: 'Trigger by',
+    });
     return plainToInstance(
       UserResponseDto,
       await this.userShareService.findOne(id),

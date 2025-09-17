@@ -2,8 +2,11 @@ import { SelectQueryBuilder } from 'typeorm';
 import { SuccessReponseDto } from './common/dto/success-response.dto';
 import { PAGINATE_CONSTANTS } from './common/constants/paginate.constants';
 import { PaginateResponseDto } from './common/dto/paginate-response.dto';
+import { Logger } from '@nestjs/common';
 
 export class BaseService {
+  protected logger = new Logger();
+
   protected async paginate<T>(
     queryBuilder: SelectQueryBuilder<T>,
     page: number = PAGINATE_CONSTANTS.PAGE,

@@ -4,10 +4,12 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RoleEntity } from './role.entity';
 import { AbstractEntity } from './abstract.entity';
+import { Notification } from './notification.entity';
 
 export const TableName = 'users';
 
@@ -33,6 +35,9 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   @Exclude()
   @Column()
   password: string;
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification;
 
   @ManyToMany(() => RoleEntity, (role) => role.users)
   @JoinTable({

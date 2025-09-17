@@ -11,6 +11,8 @@ import { RefreshStrategy } from './strategy/refresh-strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { S3Module } from '../shared/s3/s3.module';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { S3Module } from '../shared/s3/s3.module';
     MailModule,
     RedisModule,
     S3Module,
+    NotificationModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RefreshStrategy],

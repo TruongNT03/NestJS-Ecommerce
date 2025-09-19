@@ -3,7 +3,7 @@ name: CI/CD with Docker Compose
 on:
   push:
     branches:
-      - main
+      - develop
   pull_request:
 
 jobs:

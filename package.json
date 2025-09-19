@@ -14,7 +14,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "migrate:create": "typeorm-ts-node-commonjs migration:create",
-    "migrate:run": "typeorm-ts-node-commonjs migration:run -d dataSourceConfig",
+    "migrate:run": "typeorm-ts-node-commonjs migration:run -d /dist/dataSourceConfig",
     "migrate:revert": "typeorm-ts-node-commonjs migration:revert -d dataSourceConfig",
     "seed:config": "ts-node ./node_modules/typeorm-seeding/dist/cli.js src/config -r datasourceConfig",
     "seed:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-seeding/dist/cli.js seed -r datasourceConfig",

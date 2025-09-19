@@ -18,10 +18,10 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: Build project
-        run: npm run build
+        run: yarn build
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -31,6 +31,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/myapp
-            git pull origin main
+            git pull origin develop
             docker-compose down
             docker-compose up -d --build

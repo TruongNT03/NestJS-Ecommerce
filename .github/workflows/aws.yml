@@ -3,16 +3,24 @@ name: Deploy to EC2
 on:
   push:
     branches: ["develop"]
+  pull_request:
+    branches: ["develop"]
+    types:
+      - closed  
+  workflow_dispatch:   
 
 jobs:
   deploy:
+    if: github.event_name == 'push' || 
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || 
+        github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22
@@ -31,6 +39,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/NestJS-Ecommerce
-            git pull origin develop
+            git fetch origin develop
+            git reset --hard origin/develop
             docker-compose down
             docker-compose up -d --build

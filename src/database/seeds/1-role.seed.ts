@@ -1,10 +1,10 @@
 import { RoleEntity } from 'src/entities/role.entity';
 import { RoleMasterData } from 'src/master-data/role.data';
 import { DataSource } from 'typeorm';
-import { Factory, Seeder } from 'typeorm-seeding';
+import { Seeder } from 'typeorm-seeding';
 
 export default class RoleSeeding implements Seeder {
-  public async run(factory: Factory, dataSource: DataSource): Promise<void> {
+  public async run(factory: any, dataSource: DataSource): Promise<void> {
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

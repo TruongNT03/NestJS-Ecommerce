@@ -11,8 +11,8 @@ export const databaseConfig = {
   password: process.env.POSTGRES_PASSWORD || '',
   entities: [
     process.env.NODE_ENV === 'production'
-      ? '/dist/src/entities/*.entity.{ts,js}'
-      : __dirname + '/../entities/*.entity.{ts,js}',
+      ? './dist/src/entities/*.entity.{ts,js}'
+      : './src/entities/*.entity.{ts,js}',
   ],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,

@@ -1,14 +1,18 @@
-import { RoleEntity } from 'src/entities/role.entity';
-import { RoleMasterData } from 'src/master-data/role.data';
+import { RoleEntity } from '../../entities/role.entity';
+import { RoleMasterData } from '../../master-data/role.data';
 import { DataSource } from 'typeorm';
-import { Seeder } from 'typeorm-seeding';
+import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
 export default class RoleSeeding implements Seeder {
-  public async run(factory: any, dataSource: DataSource): Promise<void> {
+  async run(
+    dataSource: DataSource,
+    factoryManager: SeederFactoryManager,
+  ): Promise<any> {
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      await queryRunner.query('TRUNCATE TABLE roles RESTART IDENTITY CASCADE');
       for (const role of RoleMasterData) {
         await queryRunner.manager.save(RoleEntity, {
           name: role.name,

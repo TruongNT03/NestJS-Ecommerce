@@ -21,4 +21,4 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 8080
 
-CMD ["node", "dist/src/main.js"]
+CMD ["sh", "-c", "yarn migrate:run:prod && yarn seed:run:prod && node dist/src/main.js"]

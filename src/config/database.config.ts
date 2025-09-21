@@ -9,7 +9,11 @@ export const databaseConfig = {
   database: process.env.POSTGRES_DB || '',
   username: process.env.POSTGRES_USER || '',
   password: process.env.POSTGRES_PASSWORD || '',
-  entities: [__dirname + '/../entities/*.entity.{ts,js}'],
+  entities: [
+    process.env.NODE_ENV === 'production'
+      ? '/dist/src/entities/*.entity.{ts,js}'
+      : __dirname + '/../entities/*.entity.{ts,js}',
+  ],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 };

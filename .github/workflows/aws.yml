@@ -41,5 +41,6 @@ jobs:
             cd /home/ubuntu/NestJS-Ecommerce
             git fetch origin develop
             git reset --hard origin/develop
-            docker-compose down --rmi all
-            docker-compose up -d --build
+            docker rm -f $(docker ps -aq)
+            docker rmi -f $(docker images -aq)
+            docker-compose up -d build

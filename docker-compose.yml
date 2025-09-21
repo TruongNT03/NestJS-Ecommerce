@@ -6,8 +6,6 @@ services:
     container_name: nestjs_app
     ports:
       - 8080:8080
-    env_file:
-      - .env.production
     depends_on:
       - database
       - redis
@@ -15,8 +13,6 @@ services:
   database:
     image: postgres:15
     container_name: postgres
-    env_file:
-      - .env.production
     environment:
       - POSTGRES_USER=${DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}

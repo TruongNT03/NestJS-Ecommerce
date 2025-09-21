@@ -2,18 +2,18 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: ["develop"]
+    branches: ['develop']
   pull_request:
-    branches: ["develop"]
+    branches: ['develop']
     types:
-      - closed  
-  workflow_dispatch:   
+      - closed
+  workflow_dispatch:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' || 
-        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || 
-        github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -43,4 +43,4 @@ jobs:
             git reset --hard origin/develop
             docker rm -f $(docker ps -aq) || true
             docker rmi -f $(docker images -aq) || true
-            docker-compose up -d --build
+            docker-compose --env-file .env.production up -d --build

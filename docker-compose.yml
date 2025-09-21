@@ -4,6 +4,8 @@ services:
   app:
     build: .
     container_name: nestjs_app
+    .env_file:
+      - .env.production
     ports:
       - 8080:8080
     depends_on:

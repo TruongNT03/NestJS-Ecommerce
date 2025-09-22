@@ -12,7 +12,7 @@ export const databaseConfig = {
   entities: [
     process.env.NODE_ENV === 'production'
       ? './dist/src/entities/*.entity.{ts,js}'
-      : './src/entities/*.entity.{ts,js}',
+      : __dirname + '/../entities/*.entity.{ts,js}',
   ],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,

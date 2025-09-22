@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AdminUserService } from './admin-user.service';
 import {
   ApiBearerAuth,
@@ -9,6 +9,7 @@ import {
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UserListResponseDto } from './response/list-user-response.dto';
+import { AdminUserQueryDto } from './request/admin-user-query.dto';
 
 @ApiTags('[Admin] User management')
 @ApiBearerAuth()
@@ -20,7 +21,9 @@ export class AdminUserController {
   @ApiOperation({ summary: '[Admin] Get list user' })
   @ApiResponse({ status: 200, type: UserListResponseDto })
   @Get()
-  async findAll(): Promise<UserListResponseDto> {
-    return await this.adminUserService.findAll();
+  async findAll(
+    @Query() query: AdminUserQueryDto,
+  ): Promise<UserListResponseDto> {
+    return await this.adminUserService.findAll(query);
   }
 }

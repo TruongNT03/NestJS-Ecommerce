@@ -72,7 +72,7 @@ export class AdminProductController {
 
   @ApiOperation({ summary: '[Admin] Create Variant' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
-  @Post('variant')
+  @Post('option/variant')
   async createVariant(
     @Body() body: CreateVariantDto,
   ): Promise<SuccessReponseDto> {
@@ -81,7 +81,7 @@ export class AdminProductController {
 
   @ApiOperation({ summary: '[Admin] Get list Variant' })
   @ApiResponse({ status: 200, type: ListVariantResponseDto })
-  @Get('variant')
+  @Get('option/variant')
   async findAllVariant(
     @Query() query: VariantQueryDto,
   ): Promise<ListVariantResponseDto> {
@@ -90,7 +90,7 @@ export class AdminProductController {
 
   @ApiOperation({ summary: '[Admin] Create Variant Value by Variant Id' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
-  @Post('variant-value')
+  @Post('option/variant-value')
   async createVariantValue(
     @Body() body: CreateVariantValueDto,
   ): Promise<SuccessReponseDto> {
@@ -99,7 +99,7 @@ export class AdminProductController {
 
   @ApiOperation({ summary: '[Admin] Get list Variant Value' })
   @ApiResponse({ status: 200, type: ListVariantValueResponseDto })
-  @Get('variant-value')
+  @Get('option/variant-value')
   async findAllVariantValue(
     @Query() query: VariantValueQueryDto,
   ): Promise<ListVariantValueResponseDto> {

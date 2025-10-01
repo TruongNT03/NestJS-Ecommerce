@@ -9,7 +9,7 @@ export class RegisterDto {
     example: 'truongnt267@gmail.com',
   })
   @IsEmail()
-  @Validate(Exist<UserEntity>, [UserEntity, 'email'])
+  @Validate(Exist<UserEntity>, [UserEntity, 'email', true])
   email: string;
 
   @ApiProperty({

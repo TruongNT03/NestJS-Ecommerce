@@ -46,4 +46,9 @@ export const ERROR_RESPONSE = {
     errorCode: 'forbidden',
     message: 'Role is required',
   },
+  NOT_FOUND: {
+    statusCode: HttpStatus.NOT_FOUND,
+    errorCode: 'not_found',
+    message: 'Not Found Exception',
+  },
 };

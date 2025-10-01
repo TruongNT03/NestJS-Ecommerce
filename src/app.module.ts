@@ -15,6 +15,8 @@ import { S3Module } from './modules/shared/s3/s3.module';
 import { RoleGuard } from './modules/auth/guard/role.guard';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AdminUserModule } from './modules/admin/admin-user/admin-user.module';
+import { AdminCategoriesModule } from './modules/admin/admin-categories/admin-categories.module';
+import { AdminProductModule } from './modules/admin/admin-product/admin-product.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { AdminUserModule } from './modules/admin/admin-user/admin-user.module';
     S3Module,
     NotificationModule,
     AdminUserModule,
+    AdminCategoriesModule,
+    AdminProductModule,
   ],
   controllers: [],
   providers: [

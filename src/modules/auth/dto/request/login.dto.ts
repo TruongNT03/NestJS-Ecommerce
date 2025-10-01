@@ -4,7 +4,7 @@ import { IsEmail, IsString } from 'class-validator';
 export class LoginDto {
   @ApiProperty({
     description: 'Email use to login',
-    example: 'truongnt267@gmail.com',
+    example: 'ntt26072003@gmail.com',
   })
   @IsEmail()
   email: string;

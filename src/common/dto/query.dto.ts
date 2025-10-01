@@ -8,13 +8,19 @@ export enum SortOrder {
 }
 
 export class QueryDto {
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Page number for pagination',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   page: number;
 
-  @ApiProperty({ example: 10 })
+  @ApiProperty({
+    example: 10,
+    description: 'Number of item per page for page size',
+  })
   @Type(() => Number)
   @IsNumber()
   pageSize: number;

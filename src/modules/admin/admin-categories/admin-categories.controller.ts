@@ -15,7 +15,7 @@ import { ListCategoryQueryDto } from './dto/resquest/list-category-query.dto';
 import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 
-@ApiTags('[Admin] Categories managemant')
+@ApiTags('[ADMIN] CATEGORIES MANAGEMANT')
 @ApiBearerAuth()
 @Role([RoleType.ADMIN])
 @Controller('admin/categories')
@@ -24,21 +24,21 @@ export class AdminCategoriesController {
     private readonly adminCategoriesService: AdminCategoriesService,
   ) {}
 
-  @ApiOperation({ summary: '[Admin] Create category' })
+  @ApiOperation({ summary: '[ADMIN] CREATE CATEGORY' })
   @ApiResponse({ type: SaveEntityResponseDto })
   @Post('')
   async create(@Body() body: SaveCategoryDto): Promise<SaveEntityResponseDto> {
     return await this.adminCategoriesService.create(body);
   }
 
-  @ApiOperation({ summary: '[Admin] Upload category image' })
+  @ApiOperation({ summary: '[ADMIN] UPLOAD CATEGORY IMAGE' })
   @ApiResponse({ type: UploadResponseDto })
   @Post('upload')
   async upload(@Body() body: UploadDto): Promise<UploadResponseDto> {
     return await this.adminCategoriesService.upload(body);
   }
 
-  @ApiOperation({ summary: '[Admin] Get list categories' })
+  @ApiOperation({ summary: '[ADMIN] GET LIST CATEGORIES' })
   @ApiResponse({ type: ListCategoryResponseDto })
   @Get('')
   async findAll(

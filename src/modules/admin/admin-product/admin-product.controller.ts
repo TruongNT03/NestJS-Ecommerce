@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { AdminProductService } from './admin-product.service';
@@ -21,7 +22,6 @@ import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
 import { CreateVariantDto } from 'src/modules/admin/admin-product/dto/request/create-variant.dto';
 import { ListVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/list-variant-response.dto';
 import { VariantQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-query.dto';
-import { async } from 'rxjs';
 import { CreateVariantValueDto } from 'src/modules/admin/admin-product/dto/request/create-variant-value.dto';
 import { ListVariantValueResponseDto } from 'src/modules/admin/admin-product/dto/response/list-variant-value-response.dto';
 import { VariantValueQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-value-query.dto';
@@ -29,22 +29,26 @@ import { ListProductResponseDto } from 'src/modules/admin/admin-product/dto/resp
 import { ListProductQueryDto } from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
 import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
+import { UpdateProductStatusDto } from './dto/request/update-product-status.dto';
+import { SaveUuidResponseDto } from 'src/common/dto/save-response.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadDto } from 'src/common/dto/upload.dto';
 
-@ApiTags('[Admin] Product management')
+@ApiTags('[ADMIN] PRODUCT MANAGEMENT')
 @ApiBearerAuth()
 @Role([RoleType.ADMIN])
 @Controller('admin/product')
 export class AdminProductController {
   constructor(private readonly adminProductService: AdminProductService) {}
 
-  @ApiOperation({ summary: '[Admin] Create Product' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiOperation({ summary: '[ADMIN] CREATE PRODUCT' })
+  @ApiResponse({ status: 201, type: SaveUuidResponseDto })
   @Post('')
-  async create(@Body() body: CreateProductDto): Promise<SuccessReponseDto> {
+  async create(@Body() body: CreateProductDto): Promise<SaveUuidResponseDto> {
     return await this.adminProductService.create(body);
   }
 
-  @ApiOperation({ summary: '[Admin] Find list product' })
+  @ApiOperation({ summary: '[ADMIN] FIND LIST PRODUCT' })
   @ApiResponse({ status: 200, type: ListProductResponseDto })
   @Get('')
   async findAll(
@@ -53,16 +57,16 @@ export class AdminProductController {
     return await this.adminProductService.findAll(query);
   }
 
-  @ApiOperation({ summary: '[Admin] Find one product by Id' })
+  @ApiOperation({ summary: '[ADMIN] FIND ONE PRODUCT BY ID' })
   @ApiResponse({ status: 200, type: ProductDetailResponseDto })
   @Get('/:id')
   async findOne(@Param('id') id: string): Promise<ProductDetailResponseDto> {
     return await this.adminProductService.findOne(id);
   }
 
-  @ApiOperation({ summary: '[Admin] Update product by Id' })
+  @ApiOperation({ summary: '[ADMIN] UPDATE PRODUCT BY ID' })
   @ApiResponse({ status: 200, type: SuccessReponseDto })
-  @Patch('/:id')
+  @Put('/:id')
   async update(
     @Param('id') id: string,
     @Body() body: UpdateProductDto,
@@ -70,7 +74,26 @@ export class AdminProductController {
     return await this.adminProductService.update(id, body);
   }
 
-  @ApiOperation({ summary: '[Admin] Create Variant' })
+  @ApiOperation({ summary: '[ADMIN] UPDATE PRODUCT STATUS BY ID' })
+  @ApiResponse({ status: 200, type: SaveUuidResponseDto })
+  @Patch('/:id')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() body: UpdateProductStatusDto,
+  ): Promise<SaveUuidResponseDto> {
+    return await this.adminProductService.updateStatus(id, body);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] GET PRESIGN UPLOAD PRODUCT IMAGE' })
+  @ApiResponse({ status: 200, type: UploadResponseDto })
+  @Post('image/upload')
+  async uploadProductImage(
+    @Body() body: UploadDto,
+  ): Promise<UploadResponseDto> {
+    return await this.adminProductService.uploadProductImage(body);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] CREATE VARIANT' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
   @Post('option/variant')
   async createVariant(
@@ -79,7 +102,7 @@ export class AdminProductController {
     return await this.adminProductService.createVariant(body);
   }
 
-  @ApiOperation({ summary: '[Admin] Get list Variant' })
+  @ApiOperation({ summary: '[ADMIN] GET LIST VARIANT' })
   @ApiResponse({ status: 200, type: ListVariantResponseDto })
   @Get('option/variant')
   async findAllVariant(
@@ -88,7 +111,7 @@ export class AdminProductController {
     return await this.adminProductService.findAllVariant(query);
   }
 
-  @ApiOperation({ summary: '[Admin] Create Variant Value by Variant Id' })
+  @ApiOperation({ summary: '[ADMIN] CREATE VARIANT VALUE BY VARIANT ID' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
   @Post('option/variant-value')
   async createVariantValue(
@@ -97,7 +120,7 @@ export class AdminProductController {
     return await this.adminProductService.createVariantValue(body);
   }
 
-  @ApiOperation({ summary: '[Admin] Get list Variant Value' })
+  @ApiOperation({ summary: '[ADMIN] GET LIST VARIANT VALUE' })
   @ApiResponse({ status: 200, type: ListVariantValueResponseDto })
   @Get('option/variant-value')
   async findAllVariantValue(

@@ -29,7 +29,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @ApiOperation({ summary: 'Register account' })
+  @ApiOperation({ summary: 'REGISTER ACCOUNT' })
   @ApiResponse({ type: RegisterResponseDto, status: 201 })
   @Post('register')
   async register(@Body() body: RegisterDto): Promise<RegisterResponseDto> {
@@ -37,7 +37,7 @@ export class AuthController {
   }
 
   @Public()
-  @ApiOperation({ summary: 'Verify register request' })
+  @ApiOperation({ summary: 'VERIFY REGISTER REQUEST' })
   @ApiResponse({ type: SaveEntityResponseDto, status: 200 })
   @Post('register/verify/:id')
   async verifyRegister(
@@ -48,7 +48,7 @@ export class AuthController {
   }
 
   @Public()
-  @ApiOperation({ summary: 'Login account' })
+  @ApiOperation({ summary: 'LOGIN ACCOUNT' })
   @ApiResponse({ status: 200, type: LoginResponseDto })
   @Post('login')
   async login(@Body() body: LoginDto): Promise<LoginResponseDto> {
@@ -57,7 +57,7 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logout account' })
+  @ApiOperation({ summary: 'LOGOUT ACCOUNT' })
   @ApiResponse({ status: 200, type: SuccessReponseDto })
   @Get('logout')
   async logout(@User() user: UserRequestPayload): Promise<SuccessReponseDto> {
@@ -66,7 +66,7 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my profile' })
+  @ApiOperation({ summary: 'GET MY PROFILE' })
   @ApiResponse({ status: 200, type: UserResponseDto })
   @Get('profile')
   async getProfile(@User() user: JwtPayload): Promise<UserResponseDto> {
@@ -75,7 +75,7 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Refresh token' })
+  @ApiOperation({ summary: 'REFRESH TOKEN' })
   @ApiResponse({ status: 201, type: RefreshTokenResponseDto })
   @Get('refresh-token')
   async refreshToken(
@@ -85,7 +85,7 @@ export class AuthController {
   }
 
   @Public()
-  @ApiOperation({ summary: 'Request forgot password' })
+  @ApiOperation({ summary: 'REQUEST FORGOT PASSWORD' })
   @ApiResponse({ status: 201, type: ForgotPasswordResponseDto })
   @Post('forgot-password')
   async forgotPassword(
@@ -95,7 +95,7 @@ export class AuthController {
   }
 
   @Public()
-  @ApiOperation({ summary: 'Verify forgot password' })
+  @ApiOperation({ summary: 'VERIFY FORGOT PASSWORD' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
   @Post('forgot-password/verify/:token')
   async verifyForgotPassword(
@@ -107,7 +107,7 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Change password' })
+  @ApiOperation({ summary: 'CHANGE PASSWORD' })
   @ApiResponse({ status: 201, type: SuccessReponseDto })
   @Post('change-password')
   async changePassword(
@@ -119,7 +119,7 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Upload avatar' })
+  @ApiOperation({ summary: 'UPLOAD AVATAR' })
   @ApiResponse({ status: 200, type: UploadResponseDto })
   @Post('upload')
   async uploadAvatar(@Body() body: UploadDto): Promise<UploadResponseDto> {
@@ -128,7 +128,7 @@ export class AuthController {
 
   @Role([RoleType.ADMIN, RoleType.USER])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update profile' })
+  @ApiOperation({ summary: 'UPDATE PROFILE' })
   @ApiResponse({ status: 201, type: SaveEntityResponseDto })
   @Put('update-profile')
   async updateProfile(

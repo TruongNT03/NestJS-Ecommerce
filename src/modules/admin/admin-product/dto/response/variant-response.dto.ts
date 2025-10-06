@@ -10,16 +10,4 @@ export class VariantResponseDto {
   @Expose()
   @ApiProperty({ type: String, example: 'Size', description: 'Variant name' })
   name: string;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  createdAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
-
-  // @Expose()
-  // @ApiProperty({ type: Date, example: null })
-  // deletedAt: Date;
 }

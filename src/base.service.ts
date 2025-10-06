@@ -2,11 +2,12 @@ import { SelectQueryBuilder } from 'typeorm';
 import { SuccessReponseDto } from './common/dto/success-response.dto';
 import { PAGINATE_CONSTANTS } from './common/constants/paginate.constants';
 import { PaginateResponseDto } from './common/dto/paginate-response.dto';
-import { Logger } from '@nestjs/common';
+import {
+  SaveNumberIdResponseDto,
+  SaveUuidResponseDto,
+} from './common/dto/save-response.dto';
 
 export class BaseService {
-  protected logger = new Logger();
-
   protected async paginate<T>(
     queryBuilder: SelectQueryBuilder<T>,
     page: number = PAGINATE_CONSTANTS.PAGE,
@@ -30,9 +31,21 @@ export class BaseService {
     };
   }
 
-  protected suceesResponse(): SuccessReponseDto {
+  protected successResponse(): SuccessReponseDto {
     return {
       success: true,
+    };
+  }
+
+  protected saveUuidResponse(id: string): SaveUuidResponseDto {
+    return {
+      id,
+    };
+  }
+
+  protected saveNumberIdResponse(id: number): SaveNumberIdResponseDto {
+    return {
+      id,
     };
   }
 }

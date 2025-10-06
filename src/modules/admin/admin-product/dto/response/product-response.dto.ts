@@ -1,5 +1,6 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { ProductStatus } from 'src/common/enum/product-status.enum';
 
 @Exclude()
 export class VariantValuesResponseDto {
@@ -62,6 +63,10 @@ export class ProductResponseDto {
   description: string;
 
   @Expose()
+  @ApiProperty({ enum: ProductStatus })
+  status: ProductStatus;
+
+  @Expose()
   @ApiProperty({ type: Boolean })
   hasVariant: boolean;
 
@@ -69,6 +74,11 @@ export class ProductResponseDto {
   @ApiProperty({ type: [ProductVariantResponseDto] })
   @Type(() => ProductVariantResponseDto)
   productVariants: ProductVariantResponseDto[];
+
+  @Expose()
+  @ApiProperty({ type: [String], example: ['https://example.com'] })
+  @Transform(({ value }) => value?.map((i) => i.url))
+  productImages: string[];
 
   @Expose()
   @ApiProperty({ type: [String], example: ['Áo thu đông'] })

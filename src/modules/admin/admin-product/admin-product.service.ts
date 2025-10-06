@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateProductDto } from 'src/modules/admin/admin-product/dto/request/create-product.dto';
 import { CreateVariantDto } from 'src/modules/admin/admin-product/dto/request/create-variant.dto';
 import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
 import { BaseService } from 'src/base.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Variant } from 'src/entities/variant.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, Not, Repository } from 'typeorm';
 import { VariantQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-query.dto';
 import { ListVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/list-variant-response.dto';
 import { plainToInstance } from 'class-transformer';
@@ -19,16 +19,28 @@ import { Product } from 'src/entities/product.entity';
 import { ProductVariant } from 'src/entities/product-variant.entity';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
-import { Categories } from 'src/entities/categories.entity';
 import { ListProductQueryDto } from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
 import { ListProductResponseDto } from 'src/modules/admin/admin-product/dto/response/list-product-response.dto';
 import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
+import { UpdateProductStatusDto } from './dto/request/update-product-status.dto';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
+import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { ProductCategories } from 'src/entities/product-categories.entity';
+import { UpdateProductVariantDto } from './dto/request/update-product-variant.dto';
+import { SaveUuidResponseDto } from 'src/common/dto/save-response.dto';
+import { UploadDto } from 'src/common/dto/upload.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { S3Service } from 'src/modules/shared/s3/s3.service';
+import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
+import { ProductImage } from 'src/entities/product-image.entity';
 
 @Injectable()
 export class AdminProductService extends BaseService {
   constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
     @InjectRepository(Variant)
     private readonly variantRepo: Repository<Variant>,
     @InjectRepository(VariantValue)
@@ -37,17 +49,21 @@ export class AdminProductService extends BaseService {
     private readonly productRepo: Repository<Product>,
     @InjectRepository(ProductVariant)
     private readonly productVariantRepo: Repository<ProductVariant>,
+    @InjectRepository(ProductImage)
+    private readonly productImageRepo: Repository<ProductImage>,
     private readonly datasource: DataSource,
+    private readonly s3Service: S3Service,
   ) {
     super();
   }
-  async create(dto: CreateProductDto): Promise<SuccessReponseDto> {
+  async create(dto: CreateProductDto): Promise<SaveUuidResponseDto> {
     const {
       name,
       description,
       price,
       stock,
       sku,
+      status,
       imageUrls,
       hasVariant,
       productVariants,
@@ -61,19 +77,30 @@ export class AdminProductService extends BaseService {
         name,
         description,
         hasVariant,
+        status,
       });
 
-      // Find list Category
-      const productCategories = categoryIds.map((i) => ({
-        categoryId: i,
-        productId: product.id,
-      }));
-
-      // Create Product-Category join table
-      await queryRunner.manager.save(ProductCategories, productCategories);
+      // Create Product Category
+      await Promise.all(
+        categoryIds.map(async (categoryId) => {
+          await queryRunner.manager.save(ProductCategories, {
+            productId: product.id,
+            categoryId: categoryId,
+          });
+        }),
+      );
 
       // Create Product Image
-      // ...
+      if (imageUrls && imageUrls.length) {
+        Promise.all(
+          imageUrls.map(async (imageUrl) => {
+            await queryRunner.manager.save(ProductImage, {
+              url: imageUrl,
+              productId: product.id,
+            });
+          }),
+        );
+      }
 
       // Create Product Variant have not variant
       if (!hasVariant && price && stock) {
@@ -90,11 +117,9 @@ export class AdminProductService extends BaseService {
         await Promise.all(
           productVariants.map(async (productVariant) => {
             // Find list Variant Values
-            const variantValues = await queryRunner.manager.find(VariantValue, {
-              where: {
-                id: In(productVariant.variantValueIds),
-              },
-            });
+            const variantValues = productVariant.variantValueIds?.map((id) => ({
+              id,
+            }));
 
             // Create Product Variant
             await queryRunner.manager.save(ProductVariant, {
@@ -108,9 +133,8 @@ export class AdminProductService extends BaseService {
         );
       }
       await queryRunner.commitTransaction();
-      return this.suceesResponse();
+      return this.saveUuidResponse(product.id);
     } catch (error) {
-      console.error(error);
       this.logger.error(error?.message, {
         context: 'adminProductService.create',
         details: error,
@@ -145,6 +169,7 @@ export class AdminProductService extends BaseService {
     const queryBuilder = this.productRepo
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.categories', 'pc')
+      .leftJoinAndSelect('p.productImages', 'pi')
       .leftJoinAndSelect('p.productVariants', 'pv')
       .leftJoinAndSelect('pv.variantValues', 'variantValues')
       .leftJoinAndSelect('variantValues.variant', 'variant');
@@ -162,7 +187,7 @@ export class AdminProductService extends BaseService {
     await this.variantRepo.save({
       name,
     });
-    return this.suceesResponse();
+    return this.successResponse();
   }
 
   async findAllVariant(
@@ -190,19 +215,99 @@ export class AdminProductService extends BaseService {
     const queryBuilder = this.productRepo
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.categories', 'pc')
+      .leftJoinAndSelect('p.productImages', 'pi')
       .leftJoinAndSelect('p.productVariants', 'pv')
       .leftJoinAndSelect('pv.variantValues', 'vv')
       .leftJoinAndSelect('vv.variant', 'v')
       .where('p.id = :id', { id });
 
     const product = await queryBuilder.getOne();
-    return plainToInstance(ProductDetailResponseDto, product, {
-      excludeExtraneousValues: true,
+    return plainToInstance(ProductDetailResponseDto, product);
+  }
+
+  private async checkExistProductName(name: string): Promise<boolean> {
+    const existProductName = await this.productRepo.findOneBy({ name });
+    return !!existProductName;
+  }
+
+  private async checkExistProductVariantSku(sku: string): Promise<boolean> {
+    const existProductSku = await this.productVariantRepo.findOneBy({ sku });
+    return !!existProductSku;
+  }
+
+  private async getChangeProductVariant(
+    updateProductVariants: UpdateProductVariantDto[],
+    productId: string,
+  ) {
+    // Get all product variant id from request
+    const productVariantIdsFromRequest = updateProductVariants
+      .map((productVariant) => productVariant.id)
+      .filter((productVariantId) => productVariantId);
+
+    // Find all Product Variant exist in database
+    const allExistProductVariants = await this.productVariantRepo.findBy({
+      productId,
     });
+
+    // Find exist Product Variant in request
+    const existProductVariants = allExistProductVariants.filter(
+      (productVarinat) =>
+        productVariantIdsFromRequest.includes(productVarinat.id),
+    );
+
+    // Find new Product Variant from request without id
+    const newProductVariants = updateProductVariants.filter(
+      (productVariant) => !productVariant.id,
+    );
+
+    // Need deleted Product Variant
+    const deleteProductVariants = allExistProductVariants.filter(
+      (productVarinat) =>
+        !productVariantIdsFromRequest.includes(productVarinat.id),
+    );
+    return { existProductVariants, newProductVariants, deleteProductVariants };
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<SuccessReponseDto> {
-    const { name, description, categoryIds, productVariants } = dto;
+    const {
+      name,
+      description,
+      categoryIds,
+      productVariants,
+      status,
+      hasVariant,
+      imageUrls,
+      price,
+      sku,
+      stock,
+    } = dto;
+
+    // Check mandatory field if status is published
+    // Require field has checked in DTO layer
+    if (status === ProductStatus.PUBLISHED) {
+      const errorMessages = [];
+      if (!hasVariant) {
+        if (name && (await this.checkExistProductName(name))) {
+          errorMessages.push(`Product name #${name} is already exist.`);
+        }
+        if (sku && (await this.checkExistProductVariantSku(sku))) {
+          errorMessages.push(`Product sku #${sku} is already exist.`);
+        }
+      } else {
+        await Promise.all(
+          productVariants.map(async (productVariant) => {
+            if (
+              productVariant.sku &&
+              (await this.checkExistProductVariantSku(productVariant.sku))
+            ) {
+              errorMessages.push(
+                `Product sku #${productVariant.sku} is already exist.`,
+              );
+            }
+          }),
+        );
+      }
+    }
 
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.startTransaction();
@@ -227,6 +332,7 @@ export class AdminProductService extends BaseService {
         {
           name,
           description,
+          status,
         },
       );
 
@@ -238,10 +344,27 @@ export class AdminProductService extends BaseService {
         });
 
         // Create new Product Category
+        const productCategories = categoryIds.map((categoryId) => ({
+          productId: id,
+          categoryId: categoryId,
+        }));
+
+        await queryRunner.manager.save(ProductCategories, productCategories);
+      }
+
+      // Update Product Images
+      if (imageUrls && imageUrls.length) {
+        // Delete old to be deleted
+        await queryRunner.manager.delete(ProductImage, {
+          productId: product.id,
+          id: Not(In(imageUrls.map((imageUrl) => imageUrl.id))),
+        });
+
+        // Create new
         await Promise.all(
-          categoryIds.map(async (categoryId) => {
-            await queryRunner.manager.save(ProductCategories, {
-              categoryId: categoryId,
+          imageUrls.map(async (imageUrl) => {
+            await queryRunner.manager.save(ProductImage, {
+              id: imageUrl.id,
               productId: product.id,
             });
           }),
@@ -250,39 +373,162 @@ export class AdminProductService extends BaseService {
 
       // Update Product Variants
       if (productVariants && productVariants.length) {
-        await Promise.all(
-          productVariants.map(async (pv) => {
-            // Find Variant Values
-            const variantValues = await queryRunner.manager.find(VariantValue, {
-              where: { id: In(pv.variantValueIds) },
-            });
+        const {
+          deleteProductVariants,
+          existProductVariants,
+          newProductVariants,
+        } = await this.getChangeProductVariant(productVariants, id);
 
-            // Find Product Variant by Id
-            const productVariant = await queryRunner.manager.findOne(
-              ProductVariant,
-              { where: { id: pv.id } },
-            );
+        // Delete Product Variant do not need
+        await queryRunner.manager.delete(ProductVariant, {
+          id: In(
+            deleteProductVariants.map((productVariant) => productVariant.id),
+          ),
+        });
 
-            // Update Product Variant
-            productVariant.price = pv.price;
-            productVariant.sku = pv.sku;
-            productVariant.stock = pv.stock;
-            productVariant.variantValues = variantValues;
+        // Update Product Variant
+        await queryRunner.manager.save(ProductVariant, existProductVariants);
 
-            // Save Product Variant
-            await queryRunner.manager.save(productVariant);
-          }),
+        // Create Product Variant
+        await queryRunner.manager.save(
+          ProductVariant,
+          newProductVariants?.map((newProductVariant) => ({
+            ...newProductVariant,
+            productId: product.id,
+            variantValues: newProductVariant.variantValueIds.map(
+              (variantValueId) => ({ id: variantValueId }),
+            ),
+          })),
         );
+      } else {
+        // If array empty or undefind delete all old Product Variant
+        await queryRunner.manager.delete(ProductVariant, { productId: id });
       }
 
       await queryRunner.commitTransaction();
-      return this.suceesResponse();
+      return this.successResponse();
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new Error(error);
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async updateStatus(
+    id: string,
+    dto: UpdateProductStatusDto,
+  ): Promise<SaveUuidResponseDto> {
+    const nextStatus = dto.status;
+    // Find Product
+    const product = await this.productRepo.findOne({
+      where: {
+        id,
+      },
+      relations: [
+        'categories',
+        'productVariants',
+        'productVariants.variantValues',
+        'productVariants.variantValues.variant',
+      ],
+    });
+    const currentStatus = product.status;
+    // Check mandatory if change from unpublished to published
+    // Nothing to check
+    if (
+      currentStatus === ProductStatus.PUBLISHED &&
+      nextStatus === ProductStatus.UNPUBLISHED
+    ) {
+      product.status = nextStatus;
+      await this.productRepo.save(product);
+      return this.saveUuidResponse(product.id);
+    }
+
+    // If status change from unpublished to published
+    // Need all field valid
+
+    const errorMessages: string[] = [];
+    // Check not null field
+
+    if (!product.name) {
+      errorMessages.push(`Field name must not empty.`);
+    }
+    if (!product.description) {
+      errorMessages.push(`Field description must not empty.`);
+    }
+    if (
+      product.productVariants.some((productVariant) => !productVariant.price)
+    ) {
+      errorMessages.push(`Field price of Product Variant must not empty.`);
+    }
+    if (product.productVariants.some((productVariant) => !productVariant.sku)) {
+      errorMessages.push(`Field sku of Product Variant must not empty.`);
+    }
+    if (
+      product.productVariants.some((productVariant) => !productVariant.stock)
+    ) {
+      errorMessages.push(`Field stock of Product Variant must not empty.`);
+    }
+    if (
+      product.hasVariant === true &&
+      product.productVariants.some(
+        (productVariant) => !productVariant.variantValues,
+      )
+    ) {
+      errorMessages.push(
+        `Field variant value of Product Variant must not empty.`,
+      );
+    }
+
+    // Check unique field
+    const existNameProduct = await this.productRepo.findOneBy({
+      name: product.name,
+      status: ProductStatus.PUBLISHED,
+    });
+    if (existNameProduct) {
+      errorMessages.push(
+        `Product name #${existNameProduct.name} already exist.`,
+      );
+    }
+    const existSkuProductVariants = await this.productVariantRepo.find({
+      where: {
+        sku: In(
+          product.productVariants.map((productVariant) => productVariant.sku),
+        ),
+        product: {
+          status: ProductStatus.PUBLISHED,
+        },
+      },
+    });
+
+    if (existSkuProductVariants.length) {
+      existSkuProductVariants.forEach((existSkuProductVariant) =>
+        errorMessages.push(
+          `Product sku #${existSkuProductVariant.sku} already exist.`,
+        ),
+      );
+    }
+
+    if (errorMessages.length) {
+      throw new ServerException({
+        ...ERROR_RESPONSE.BAD_REQUEST,
+        message: errorMessages.join('\n'),
+      });
+    }
+
+    // Update when have not error
+    await this.productRepo.update({ id: id }, { status: nextStatus });
+
+    return this.saveUuidResponse(id);
+  }
+
+  async uploadProductImage(dto: UploadDto): Promise<UploadResponseDto> {
+    const { fileName, contentType } = dto;
+    return await this.s3Service.getPresign(
+      fileName,
+      contentType,
+      BucketFolder.PRODUCT_IMAGE,
+    );
   }
 
   async createVariantValue(
@@ -293,7 +539,7 @@ export class AdminProductService extends BaseService {
       value,
       variantId,
     });
-    return this.suceesResponse();
+    return this.successResponse();
   }
 
   async findAllVariantValue(

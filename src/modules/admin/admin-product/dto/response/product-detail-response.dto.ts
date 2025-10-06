@@ -1,69 +1,9 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { VariantResponseDto } from 'src/modules/admin/admin-product/dto/response/variant-response.dto';
 import { CategoryResponseDto } from 'src/modules/admin/admin-categories/dto/response/category-response.dto';
-
-@Exclude()
-export class VariantValueResponseDto {
-  @Expose()
-  @ApiProperty({
-    type: Number,
-    example: 'ca07d01b-cbe6-4c4f-aa4c-d55e937eefd7',
-  })
-  id: number;
-
-  @Expose()
-  @ApiProperty({ type: String, example: 'M' })
-  value: string;
-
-  @Expose()
-  @ApiProperty()
-  @Type(() => VariantResponseDto)
-  variant: VariantResponseDto;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  createdAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
-}
-
-@Exclude()
-export class DetailProductVariantResponseDto {
-  @Expose()
-  @ApiProperty({
-    type: String,
-    example: 'ca07d01b-cbe6-4c4f-aa4c-d55e937eefd7',
-  })
-  id: string;
-
-  @Expose()
-  @ApiProperty({ type: Number, example: 1000 })
-  price: number;
-
-  @Expose()
-  @ApiProperty({ type: String, example: 'AO-THUN-001' })
-  sku: string;
-
-  @Expose()
-  @ApiProperty({ type: Number, example: 50 })
-  stock: number;
-
-  @Expose()
-  @ApiProperty({ type: [VariantValueResponseDto] })
-  @Type(() => VariantValueResponseDto)
-  variantValues: VariantValueResponseDto[];
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  createdAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
-}
+import { ProductDetailVariantResponseDto } from './produt-detail-variant-response.dto';
+import { ProductStatus } from 'src/common/enum/product-status.enum';
+import { ProductImageDetailReponseDto } from './product-image-detail-response.dto';
 
 @Exclude()
 export class ProductDetailResponseDto {
@@ -87,20 +27,21 @@ export class ProductDetailResponseDto {
   hasVariant: boolean;
 
   @Expose()
+  @ApiProperty({ enum: ProductStatus })
+  status: ProductStatus;
+
+  @Expose()
   @ApiProperty({ type: [CategoryResponseDto] })
   @Type(() => CategoryResponseDto)
   categories: CategoryResponseDto[];
 
   @Expose()
-  @ApiProperty({ type: [DetailProductVariantResponseDto] })
-  @Type(() => DetailProductVariantResponseDto)
-  productVariants: DetailProductVariantResponseDto[];
+  @ApiProperty({ type: [ProductImageDetailReponseDto] })
+  @Transform(({ value }) => value?.map((i) => ({ id: i.id, url: i.url })))
+  productImages: ProductImageDetailReponseDto[];
 
   @Expose()
-  @ApiProperty({ type: Date })
-  createdAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
+  @ApiProperty({ type: [ProductDetailVariantResponseDto] })
+  @Type(() => ProductDetailVariantResponseDto)
+  productVariants: ProductDetailVariantResponseDto[];
 }

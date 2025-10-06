@@ -113,7 +113,7 @@ export class AuthService extends BaseService {
     const { id, jti } = user;
     const userTokenKey = this.redisService.getUserTokenKey(id, jti);
     await this.redisService.deleteKey(userTokenKey);
-    return this.suceesResponse();
+    return this.successResponse();
   }
 
   async manageUserToken(user: UserEntity): Promise<LoginResponseDto> {
@@ -253,7 +253,7 @@ export class AuthService extends BaseService {
     const userPatternKey = this.redisService.getUserPatternKey(user.id);
     await this.redisService.deleteByPattern(userPatternKey);
 
-    return this.suceesResponse();
+    return this.successResponse();
   }
 
   async changePassword(

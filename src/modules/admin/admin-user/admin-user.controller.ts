@@ -11,14 +11,14 @@ import { RoleType } from 'src/common/enum/role.enum';
 import { UserListResponseDto } from './response/list-user-response.dto';
 import { AdminUserQueryDto } from './request/admin-user-query.dto';
 
-@ApiTags('[Admin] User management')
+@ApiTags('[ADMIN] USER MANAGEMENT')
 @ApiBearerAuth()
 @Role([RoleType.ADMIN])
 @Controller('user')
 export class AdminUserController {
   constructor(private readonly adminUserService: AdminUserService) {}
 
-  @ApiOperation({ summary: '[Admin] Get list user' })
+  @ApiOperation({ summary: '[ADMIN] GET LIST USER' })
   @ApiResponse({ status: 200, type: UserListResponseDto })
   @Get()
   async findAll(

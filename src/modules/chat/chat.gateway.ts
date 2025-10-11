@@ -12,32 +12,39 @@ import { UserShareService } from '../user/user-share.service';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { jwtConfiguration } from 'src/config';
-import { EVENT } from './notification.constant';
-import { Notification } from 'src/entities/notification.entity';
-import { ChatQueueProducer } from '../shared/queue/chat/chat-queue.producer';
 import { RoleType } from 'src/common/enum/role.enum';
+import { MessageEntity } from 'src/entities/message.entity';
+import { CONSTANTS } from './chat.constant';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Conversation } from 'src/entities/conversation.entity';
+import { Repository } from 'typeorm';
+import { OnlineUserService } from '../shared/online-user/online-user.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
-  namespace: 'notification',
+  namespace: 'chat',
 })
-export class NotificationGateway
+export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer()
-  private server: Server;
-  private userOnline: Map<string, string> = new Map();
-  private logger = new Logger(NotificationGateway.name);
   constructor(
     private readonly jwtService: JwtService,
     private readonly userShareService: UserShareService,
     @Inject(jwtConfiguration.KEY)
     private readonly jwtConfig: ConfigType<typeof jwtConfiguration>,
-    private readonly chatQueue: ChatQueueProducer,
+    @InjectRepository(Conversation)
+    private readonly conversationRepo: Repository<Conversation>,
+    private readonly onlineUserService: OnlineUserService,
   ) {}
+
+  @WebSocketServer()
+  private server: Server;
+  private logger = new Logger(ChatGateway.name);
+
   afterInit(server: Server) {
+    // Init server
     this.server = server;
     this.logger.log('Socket initialized');
   }
@@ -58,11 +65,30 @@ export class NotificationGateway
         },
       );
       const user = await this.userShareService.findOne(userRequestPayload.id);
-      this.userOnline.set(client.id, user.id);
-      client.join(`userId:${user.id}`);
-      // if (!userRequestPayload.roles.includes(RoleType.ADMIN)) {
-      //   await this.chatQueue.addNewClientInitChat('Hehe');
-      // }
+
+      this.onlineUserService.addAccountOnline(user.id, client);
+
+      // Find all conversation of user
+      const conversations = await this.conversationRepo.find({
+        where: {
+          users: {
+            id: user.id,
+          },
+        },
+      });
+
+      // Push user to conversations
+      await Promise.all(
+        conversations.map(async (conversation) => {
+          await client.join(`conversation:${conversation.id}`);
+        }),
+      );
+
+      // Check role ADMIN
+      if (userRequestPayload.roles.includes(RoleType.ADMIN)) {
+        this.onlineUserService.addAdminOnline(user.id, client);
+      }
+
       this.logger.log(`User ID: ${user.id} is connected with: ${client.id}`);
     } catch (error) {
       this.logger.error('Token is invalid', error.stack, error.context);
@@ -86,7 +112,15 @@ export class NotificationGateway
         },
       );
       const user = await this.userShareService.findOne(userRequestPayload.id);
-      this.userOnline.delete(client.id);
+      this.onlineUserService.deleteAccountOnline(user.id, client);
+
+      // Check if admin
+      if (
+        userRequestPayload.roles &&
+        userRequestPayload.roles.includes(RoleType.ADMIN)
+      ) {
+        this.onlineUserService.deleteAdminOnline(user.id, client);
+      }
       client.leave(`userId:${user.id}`);
       this.logger.log(`User ID: ${user.id} is disconnected with: ${client.id}`);
     } catch (error) {
@@ -96,7 +130,21 @@ export class NotificationGateway
     }
   }
 
-  async sendToUserId(userId: string, notification: Notification) {
-    this.server.to(`userId:${userId}`).emit(EVENT.NOTIFICATION, notification);
+  async sendMessageToConversation(
+    conversationId: string,
+    message: MessageEntity,
+  ) {
+    this.server
+      .to(`conversation:${conversationId}`)
+      .emit(CONSTANTS.EVENT.CHAT, message);
+  }
+
+  async pushUserToConversationRoom(userId: string, conversationId: string) {
+    const userSockets = this.onlineUserService.getAccountOnline(userId);
+    await Promise.all(
+      userSockets.map(async (userSocket) => {
+        await userSocket.join(`conversation:${conversationId}`);
+      }),
+    );
   }
 }

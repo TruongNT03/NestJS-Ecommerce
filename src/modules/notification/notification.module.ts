@@ -8,12 +8,14 @@ import { jwtConfiguration } from 'src/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
 import { UserEntity } from 'src/entities/user.entity';
+import { ChatQueueModule } from '../shared/queue/chat/chat-queue.module';
 
 @Module({
   imports: [
     ConfigModule.forFeature(jwtConfiguration),
     TypeOrmModule.forFeature([Notification, UserEntity]),
     UserModule,
+    ChatQueueModule,
   ],
   providers: [NotificationGateway, NotificationService, JwtService],
   exports: [NotificationService],

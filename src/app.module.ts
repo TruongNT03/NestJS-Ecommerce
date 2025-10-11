@@ -17,12 +17,17 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { AdminUserModule } from './modules/admin/admin-user/admin-user.module';
 import { AdminCategoriesModule } from './modules/admin/admin-categories/admin-categories.module';
 import { AdminProductModule } from './modules/admin/admin-product/admin-product.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { BullModule } from '@nestjs/bullmq';
+import { redisConfiguration } from './config';
+import { ChatQueueModule } from './modules/shared/queue/chat/chat-queue.module';
+import { OnlineUserModule } from './modules/shared/online-user/online-user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfiguration, mailConfig],
+      load: [databaseConfiguration, mailConfig, redisConfiguration],
     }),
     TypeOrmModule.forRootAsync({
       inject: [databaseConfiguration.KEY],
@@ -36,6 +41,15 @@ import { AdminProductModule } from './modules/admin/admin-product/admin-product.
       inject: [ConfigService],
       useFactory: () => ({}),
     }),
+    BullModule.forRootAsync({
+      inject: [redisConfiguration.KEY],
+      useFactory: (redisConfig: ConfigType<typeof redisConfiguration>) => ({
+        connection: {
+          host: redisConfig.host,
+          port: redisConfig.port,
+        },
+      }),
+    }),
     UserModule,
     AuthModule,
     RedisModule,
@@ -45,6 +59,9 @@ import { AdminProductModule } from './modules/admin/admin-product/admin-product.
     AdminUserModule,
     AdminCategoriesModule,
     AdminProductModule,
+    ChatModule,
+    ChatQueueModule,
+    OnlineUserModule,
   ],
   controllers: [],
   providers: [

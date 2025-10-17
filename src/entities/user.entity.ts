@@ -11,6 +11,7 @@ import {
 import { RoleEntity } from './role.entity';
 import { AbstractEntity } from './abstract.entity';
 import { Notification } from './notification.entity';
+import { Conversation } from './conversation.entity';
 import { Cart } from 'src/entities/cart.entity';
 
 export const TableName = 'users';
@@ -44,16 +45,18 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   @ManyToMany(() => RoleEntity, (role) => role.users)
   @JoinTable({
     name: 'user_role',
-    joinColumn: {
-      name: 'user_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'role_id',
-      referencedColumnName: 'id',
-    },
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
   roles: RoleEntity[];
+
+  @ManyToMany(() => Conversation, (conversation) => conversation.users)
+  @JoinTable({
+    name: 'user_conversations',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'conversation_id', referencedColumnName: 'id' },
+  })
+  conversations: Conversation[];
 
   @OneToOne(() => Cart, (cart) => cart.user)
   cart: Cart;

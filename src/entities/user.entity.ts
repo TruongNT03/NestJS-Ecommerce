@@ -5,11 +5,13 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RoleEntity } from './role.entity';
 import { AbstractEntity } from './abstract.entity';
 import { Notification } from './notification.entity';
+import { Cart } from 'src/entities/cart.entity';
 
 export const TableName = 'users';
 
@@ -52,4 +54,7 @@ export class UserEntity extends AbstractEntity<UserEntity> {
     },
   })
   roles: RoleEntity[];
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart;
 }

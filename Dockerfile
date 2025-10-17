@@ -15,7 +15,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 COPY package.json yarn.lock ./
-COPY --from=builder /app/node_modules ./node_modules
+RUN yarn install --frozen-lockfile --production --ignore-scripts
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 8080

@@ -1,21 +1,34 @@
-# Stage 1: Build
-FROM node:22-alpine AS builder
+# Stage 1: Install deps
+FROM node:22-slim AS deps
 
 WORKDIR /app
 
 COPY package.json yarn.lock ./
+
 RUN yarn install --frozen-lockfile
 
+
+# Stage 2: Build app
+FROM node:22-slim AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+
 COPY . .
+
 RUN yarn build
 
-# Stage 2: Run
-FROM node:22-alpine AS runner
+#  Stage 3: Production runtime
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --production --ignore-scripts
+
+RUN yarn install --frozen-lockfile --production --ignore-scripts --prefer-offline
+
+
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 8080

@@ -26,6 +26,20 @@ services:
     container_name: redis
     ports:
       - 6378:6379
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

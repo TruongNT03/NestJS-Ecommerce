@@ -16,17 +16,17 @@ services:
     networks:
       - web
 
-  database:
-    image: postgres:15
-    container_name: postgres
-    env_file:
-      - .env.production
-    ports:
-      - '5433:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - web
+  # database:
+  #   image: postgres:15
+  #   container_name: postgres
+  #   env_file:
+  #     - .env.production
+  #   ports:
+  #     - '5433:5432'
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - web
 
   redis:
     image: redis:8.0-rc1-alpine
@@ -56,6 +56,6 @@ networks:
   web:
 
 volumes:
-  postgres_data:
+  # postgres_data:
   caddy_data:
   caddy_config:

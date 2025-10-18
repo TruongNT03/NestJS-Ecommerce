@@ -5,43 +5,72 @@ on:
     branches: ['develop']
   pull_request:
     branches: ['develop']
-    types:
-      - closed
+    types: [closed]
   workflow_dispatch:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' ||
+    if: |
+      github.event_name == 'push' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Build project
-        run: yarn build
+        uses: actions/checkout@v4
 
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          timeout: 30m
+          port: 22
+          timeout: 10m
+          command_timeout: 30m
           script: |
+            set -e
+
             cd /home/ubuntu/NestJS-Ecommerce
+
+            echo "📥 Pulling latest code..."
             git fetch origin develop
             git reset --hard origin/develop
-            docker rm -f $(docker ps -aq) || true
-            docker rmi -f $(docker images -aq) || true
-            docker-compose up -d --build
+
+            echo "🛑 Stopping old containers..."
+            docker-compose down || true
+
+            echo "🧹 Cleaning up..."
+            docker image prune -f || true
+
+            echo "🚀 Building and starting services..."
+            docker-compose up -d --build --remove-orphans
+
+            echo "🏥 Checking service health..."
+            sleep 10
+            docker-compose ps
+
+            echo "📋 Recent logs:"
+            docker-compose logs --tail=50 app
+
+            echo "✅ Deployment completed!"
+
+      - name: Verify Deployment
+        if: success()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/NestJS-Ecommerce
+
+            timeout 120 sh -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done' || {
+              echo "❌ App failed health check"
+              docker-compose logs app
+              exit 1
+            }
+
+            echo "✅ All services are healthy"

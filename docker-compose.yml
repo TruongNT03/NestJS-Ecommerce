@@ -6,40 +6,46 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nestjs_app
+    restart: unless-stopped
     env_file:
       - .env.production
     expose:
       - '8080'
     depends_on:
-      # - database
-      - redis
+      redis:
+        condition: service_started
     networks:
       - web
-
-  # database:
-  #   image: postgres:15
-  #   container_name: postgres
-  #   env_file:
-  #     - .env.production
-  #   ports:
-  #     - '5433:5432'
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   networks:
-  #     - web
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:8080/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:8.0-rc1-alpine
     container_name: redis
+    restart: unless-stopped
     ports:
       - '6378:6379'
     networks:
       - web
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   caddy:
     image: caddy:latest
     container_name: caddy
-    restart: always
+    restart: unless-stopped
     ports:
       - '80:80'
       - '443:443'
@@ -48,14 +54,15 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - web
 
 networks:
   web:
+    driver: bridge
 
 volumes:
-  # postgres_data:
   caddy_data:
   caddy_config:

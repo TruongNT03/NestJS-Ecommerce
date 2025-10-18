@@ -14,6 +14,9 @@ export const databaseConfig = {
       ? './dist/src/entities/*.entity.{ts,js}'
       : __dirname + '/../entities/*.entity.{ts,js}',
   ],
+  ssl: {
+    rejectUnauthorized: false,
+  },
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 };

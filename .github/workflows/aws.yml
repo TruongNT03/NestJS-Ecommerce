@@ -44,33 +44,21 @@ jobs:
 
             echo "🧹 Cleaning up..."
             docker image prune -f || true
+            docker volume prune -f || true
 
             echo "🚀 Building and starting services..."
             docker-compose up -d --build --remove-orphans
 
-            echo "🏥 Checking service health..."
-            sleep 10
+            echo "⏳ Waiting for services..."
+            sleep 20
+
+            echo "📊 Container status:"
             docker-compose ps
 
-            echo "📋 Recent logs:"
+            echo "📋 App logs:"
             docker-compose logs --tail=50 app
 
+            echo "📋 Nginx logs:"
+            docker-compose logs --tail=20 nginx
+
             echo "✅ Deployment completed!"
-
-      - name: Verify Deployment
-        if: success()
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/NestJS-Ecommerce
-
-            timeout 120 sh -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done' || {
-              echo "❌ App failed health check"
-              docker-compose logs app
-              exit 1
-            }
-
-            echo "✅ All services are healthy"

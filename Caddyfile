@@ -1,3 +1,0 @@
-teeshop.io.vn {
-    reverse_proxy app:8080
-}

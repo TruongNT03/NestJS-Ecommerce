@@ -24,4 +24,7 @@ export class Payment extends AbstractEntity<Payment> {
 
   @Column()
   status: PaymentStatus;
+
+  @Column()
+  orderCode: string;
 }

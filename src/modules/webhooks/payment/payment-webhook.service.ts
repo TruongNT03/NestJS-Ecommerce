@@ -22,11 +22,11 @@ export class PaymentWebhookService extends BaseService {
   async payment(dto: Webhook): Promise<SuccessResponseDto> {
     const { code, data, desc, signature, success } = dto;
     // Defined when create
-    const orderId = data.description;
+    const orderCode = data.description;
     if (success) {
       // Change payment status
       await this.paymentRepo.update(
-        { orderId: orderId },
+        { orderCode: orderCode },
         {
           status: PaymentStatus.SUCCESS,
         },
@@ -34,14 +34,14 @@ export class PaymentWebhookService extends BaseService {
       // Change status in order
       await this.orderRepo.update(
         {
-          id: orderId,
+          orderCode: orderCode,
         },
         { status: OrderStatus.SHIPPING },
       );
     }
     if (!success) {
       await this.paymentRepo.update(
-        { orderId: orderId },
+        { orderCode: orderCode },
         {
           status: PaymentStatus.FAIlED,
         },

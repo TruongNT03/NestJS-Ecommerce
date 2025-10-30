@@ -64,10 +64,12 @@ export class PaymentService extends BaseService {
       };
     });
 
+    const orderCode = Date.now();
+
     const createPaymentLinkResponse = await this.payOS.paymentRequests.create({
-      orderCode: Date.now(),
+      orderCode: orderCode,
       amount: amount,
-      description: order.id,
+      description: `${orderCode}`,
       buyerName: order.user.firstName + ' ' + order.user.lastName,
       buyerAddress: order.address.address,
       buyerEmail: order.user.email,

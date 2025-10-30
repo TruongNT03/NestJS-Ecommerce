@@ -29,6 +29,9 @@ export class Order extends AbstractEntity<Order> {
   @Column()
   status: OrderStatus;
 
+  @Column()
+  orderCode: string;
+
   @ManyToOne(() => UserEntity, (user) => user.order)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: UserEntity;

@@ -25,27 +25,27 @@ export class PaymentWebhookService extends BaseService {
     const orderId = data.description;
     if (success) {
       // Change payment status
-      // await this.paymentRepo.update(
-      //   { orderId: orderId },
-      //   {
-      //     status: PaymentStatus.SUCCESS,
-      //   },
-      // );
-      // // Change status in order
-      // await this.orderRepo.update(
-      //   {
-      //     id: orderId,
-      //   },
-      //   { status: OrderStatus.SHIPPING },
-      // );
+      await this.paymentRepo.update(
+        { orderId: orderId },
+        {
+          status: PaymentStatus.SUCCESS,
+        },
+      );
+      // Change status in order
+      await this.orderRepo.update(
+        {
+          id: orderId,
+        },
+        { status: OrderStatus.SHIPPING },
+      );
     }
     if (!success) {
-      // await this.paymentRepo.update(
-      //   { orderId: orderId },
-      //   {
-      //     status: PaymentStatus.FAIlED,
-      //   },
-      // );
+      await this.paymentRepo.update(
+        { orderId: orderId },
+        {
+          status: PaymentStatus.FAIlED,
+        },
+      );
     }
     return {
       success: true,

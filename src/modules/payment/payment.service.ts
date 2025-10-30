@@ -1,0 +1,82 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { BaseService } from 'src/base.service';
+import { CreatePaymentDto } from './dto/request/create-payment.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Order } from 'src/entities/order.entity';
+import { Repository } from 'typeorm';
+import { PaymentType } from 'src/common/enum/payment-type.enum';
+import { ServerException } from 'src/exceptions/sever.exception';
+import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
+import { payosConfiguration } from 'src/config';
+import { ConfigType } from '@nestjs/config';
+import { PayOS } from '@payos/node';
+import { OrderStatus } from 'src/common/enum/order-status.enum';
+
+@Injectable()
+export class PaymentService extends BaseService {
+  private payOS: PayOS;
+  constructor(
+    @Inject(payosConfiguration.KEY)
+    private readonly payOSConfig: ConfigType<typeof payosConfiguration>,
+    @InjectRepository(Order)
+    private readonly orderRepo: Repository<Order>,
+  ) {
+    super();
+    this.payOS = new PayOS({
+      apiKey: this.payOSConfig.apiKey,
+      clientId: this.payOSConfig.clientId,
+      checksumKey: this.payOSConfig.checksumKey,
+    });
+  }
+
+  async create(dto: CreatePaymentDto) {
+    const { orderId } = dto;
+
+    const order = await this.orderRepo.findOne({
+      where: {
+        id: orderId,
+      },
+      relations: ['user', 'address', 'orderItems', 'orderItems.productVariant'],
+    });
+
+    if (!order) {
+      throw new ServerException({
+        ...ERROR_RESPONSE.NOT_FOUND,
+        message: 'Order not found',
+      });
+    }
+
+    let amount = 0;
+
+    const listItems: {
+      name: string;
+      quantity: number;
+      price: number;
+      unit: string;
+    }[] = order.orderItems.map((orderItem) => {
+      amount += orderItem.quantity * orderItem.productVariant.price;
+      return {
+        name: orderItem.productVariant.sku,
+        quantity: orderItem.quantity,
+        price: orderItem.productVariant.price,
+        unit: 'Chiếc',
+      };
+    });
+
+    const createPaymentLinkResponse = await this.payOS.paymentRequests.create({
+      orderCode: Date.now(),
+      amount: amount,
+      description: 'description',
+      buyerName: order.user.firstName + ' ' + order.user.lastName,
+      buyerAddress: order.address.address,
+      buyerEmail: order.user.email,
+      items: listItems,
+      cancelUrl: this.payOSConfig.cancelUrl,
+      returnUrl: this.payOSConfig.returnUrl,
+      signature: this.payOSConfig.signature,
+    });
+
+    return { checkoutUrl: createPaymentLinkResponse.checkoutUrl };
+  }
+}

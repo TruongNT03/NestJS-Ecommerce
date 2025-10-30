@@ -3,3 +3,4 @@ export { default as jwtConfiguration } from './jwt.config';
 export { default as mailConfiguration } from './mail.config';
 export { default as databaseConfiguration } from './database.config';
 export { default as redisConfiguration } from './redis.config';
+export { default as payosConfiguration } from './payos.config';

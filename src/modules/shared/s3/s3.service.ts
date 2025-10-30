@@ -3,7 +3,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ConfigType } from '@nestjs/config';
 import { s3Configuration } from 'src/config';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { preProcessFileName } from 'src/common/utils/pre-process-file-name.util';
 
 @Injectable()

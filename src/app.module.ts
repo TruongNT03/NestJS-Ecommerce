@@ -22,6 +22,13 @@ import { BullModule } from '@nestjs/bullmq';
 import { redisConfiguration } from './config';
 import { ChatQueueModule } from './modules/shared/queue/chat/chat-queue.module';
 import { OnlineUserModule } from './modules/shared/online-user/online-user.module';
+import { CartModule } from './modules/cart/cart.module';
+import { ProductModule } from './modules/product/product.module';
+import { OrderModule } from './modules/order/order.module';
+import { AddressModule } from './modules/address/address.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { PaymentWebhookModule } from './modules/webhooks/payment/payment-webhook.module';
+import { getWinstonConfig } from './common/utils/logger-transport.util';
 
 @Module({
   imports: [
@@ -39,7 +46,7 @@ import { OnlineUserModule } from './modules/shared/online-user/online-user.modul
     }),
     WinstonModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: () => ({}),
+      useFactory: () => getWinstonConfig('TeeShop'),
     }),
     BullModule.forRootAsync({
       inject: [redisConfiguration.KEY],
@@ -62,6 +69,12 @@ import { OnlineUserModule } from './modules/shared/online-user/online-user.modul
     ChatModule,
     ChatQueueModule,
     OnlineUserModule,
+    CartModule,
+    ProductModule,
+    OrderModule,
+    AddressModule,
+    PaymentModule,
+    PaymentWebhookModule,
   ],
   controllers: [],
   providers: [

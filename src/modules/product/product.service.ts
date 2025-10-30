@@ -10,9 +10,13 @@ import { Product } from 'src/entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { BaseService } from 'src/base.service';
+import { ServerException } from 'src/exceptions/sever.exception';
+import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
+import { UserProductDetailResponseDto } from './dto/response/user-product-detail-response.dto';
+import { ProductVariantValueResponseDto } from './dto/response/product-variant-value.response.dto';
 
 @Injectable()
-export class UserProductService extends BaseService {
+export class ProductService extends BaseService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
@@ -103,5 +107,66 @@ export class UserProductService extends BaseService {
       data,
       paginate,
     });
+  }
+
+  async findOne(id: string): Promise<UserProductDetailResponseDto> {
+    const product = this.productRepo.findOneBy({ id });
+    if (!product) {
+      throw new ServerException(ERROR_RESPONSE.NOT_FOUND);
+    }
+    const data = await this.queryBuilderFindOne(id).getOne();
+
+    const totalStock = data.productVariants
+      .map((productVariant) => productVariant.stock)
+      .reduce((sum, value) => (sum += value));
+
+    return plainToInstance(UserProductDetailResponseDto, {
+      ...data,
+      totalStock,
+    });
+  }
+
+  private queryBuilderFindOne(id: string) {
+    const queryBuilder = this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.productImages', 'i')
+      .leftJoinAndSelect('p.productVariants', 'pv')
+      .leftJoinAndSelect('p.categories', 'c')
+      .leftJoinAndSelect('pv.variantValues', 'vv')
+      .leftJoinAndSelect('vv.variant', 'v')
+      .where('p.id = :id', { id });
+
+    return queryBuilder;
+  }
+
+  async getProductVariantValue(
+    id: string,
+  ): Promise<ProductVariantValueResponseDto[]> {
+    const data = await this.queryBuilderFindOne(id).getOne();
+
+    const record: Record<string, Set<string>> = {};
+
+    data.productVariants.map((productVariant) =>
+      productVariant.variantValues.map((variantValue) => {
+        if (!record[variantValue.variant.name]) {
+          record[variantValue.variant.name] = new Set();
+        }
+        record[variantValue.variant.name].add(variantValue.value);
+      }),
+    );
+
+    const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+    const result = Object.entries(record).map(([variant, value]) => ({
+      variant,
+      value:
+        variant === 'Size'
+          ? [...Array.from(value)].sort(
+              (a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b),
+            )
+          : [...Array.from(value)].sort((a, b) => a.localeCompare(b)),
+    }));
+
+    return plainToInstance(ProductVariantValueResponseDto, result);
   }
 }

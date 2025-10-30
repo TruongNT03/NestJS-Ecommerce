@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { AbstractEntity } from 'src/entities/abstract.entity';
 import { Cart } from 'src/entities/cart.entity';
+import { ProductVariant } from './product-variant.entity';
 
 export const TableName = 'cart_items';
 
@@ -16,7 +17,7 @@ export class CartItem extends AbstractEntity<CartItem> {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column('uuid')
   cartId: string;
 
   @Column()
@@ -28,4 +29,8 @@ export class CartItem extends AbstractEntity<CartItem> {
   @ManyToOne(() => Cart, (cart) => cart.cartItems)
   @JoinColumn({ name: 'cart_id', referencedColumnName: 'id' })
   cart: Cart;
+
+  @OneToOne(() => ProductVariant)
+  @JoinColumn({ name: 'product_variant_id', referencedColumnName: 'id' })
+  productVariant: ProductVariant;
 }

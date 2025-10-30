@@ -12,7 +12,7 @@ import {
 import { ListCategoryResponseDto } from './dto/response/list-category-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { CategoryResponseDto } from './dto/response/category-response.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 import { S3Service } from 'src/modules/shared/s3/s3.service';
 

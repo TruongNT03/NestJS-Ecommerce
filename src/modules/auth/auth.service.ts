@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/request/register.dto';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { MailService } from '../shared/mail/mail.service';
 import { generateOTP } from 'src/common/utils/otp-generate.util';
 import { RedisService } from '../shared/redis/redis.service';
 import { v4 } from 'uuid';
 import { VerifyRegisterDto } from './dto/request/verify-register.dto';
-import { comparePassword, hassingPassword } from 'src/common/utils/hash.util';
+import { comparePassword, hashingPassword } from 'src/common/utils/hash.util';
 import { RegisterRedisValueDto } from './dto/request/register-redis-value.dto';
 import { RegisterResponseDto } from './dto/response/register-response.dto';
 import { LoginDto } from './dto/request/login.dto';
@@ -18,7 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserEntity } from 'src/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { LoginResponseDto } from './dto/response/login-response.dto';
-import { convertDatePatternToSecond } from '../../common/utils/convert-date-pattern-to-minisecond.util';
+import { convertDatePatternToSecond } from '../../common/utils/convert-date-pattern-to-millisecond.util';
 import * as _ from 'lodash';
 import { RefreshTokenResponseDto } from './dto/response/refresh-token-response.dto';
 import { SaveEntityResponseDto } from 'src/common/dto/save-entity-response.dto';
@@ -33,7 +33,7 @@ import { ChangePasswordDto } from './dto/request/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/response/change-password-response.dto';
 import { BaseService } from 'src/base.service';
 import { UploadDto } from 'src/common/dto/upload.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { S3Service } from '../shared/s3/s3.service';
 import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
 import { RoleType } from 'src/common/enum/role.enum';
@@ -62,10 +62,10 @@ export class AuthService extends BaseService {
     const token = v4();
     const redisKey = this.redisService.getRegisterKey(token);
     const OTP = generateOTP();
-    const hassPassword = hassingPassword(password);
+    const hashPassword = hashingPassword(password);
     await this.redisService.setValue<RegisterRedisValueDto>(
       redisKey,
-      { email, password: hassPassword, OTP },
+      { email, password: hashPassword, OTP },
       300,
     );
     await this.mailService.sendMail(OTP, dto.email);
@@ -109,7 +109,7 @@ export class AuthService extends BaseService {
     return await this.manageUserToken(user);
   }
 
-  async logout(user: UserRequestPayload): Promise<SuccessReponseDto> {
+  async logout(user: UserRequestPayload): Promise<SuccessResponseDto> {
     const { id, jti } = user;
     const userTokenKey = this.redisService.getUserTokenKey(id, jti);
     await this.redisService.deleteKey(userTokenKey);
@@ -140,7 +140,7 @@ export class AuthService extends BaseService {
 
     await this.redisService.setValue(
       this.redisService.getUserTokenKey(user.id, jti),
-      'devicedId',
+      'deviceId',
       convertDatePatternToSecond(
         this.configService.get<string>('JWT_REFRESH_EXPIRES'),
       ),
@@ -230,14 +230,14 @@ export class AuthService extends BaseService {
   async verifyForgotPassword(
     token: string,
     dto: VerifyForgotPasswordDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     const { OTP } = dto;
     const redisValue = await this.redisService.getValue(token);
     if (OTP !== redisValue.OTP) {
       throw new ServerException(ERROR_RESPONSE.OTP_INVALID);
     }
     const newPassword = passwordGenerate(8);
-    const hassPassword = hassingPassword(newPassword);
+    const hashPassword = hashingPassword(newPassword);
     const user = await this.userRepo.findOneBy({ id: redisValue.userId });
     if (!user) {
       throw new ServerException(ERROR_RESPONSE.USER_NOT_FOUND);
@@ -245,7 +245,7 @@ export class AuthService extends BaseService {
     await this.userRepo.update(
       { id: user.id },
       {
-        password: hassPassword,
+        password: hashPassword,
       },
     );
     await this.mailService.sendNewPassword(newPassword, user.email);
@@ -263,7 +263,7 @@ export class AuthService extends BaseService {
     const { id } = user;
     const { newPassword } = dto;
 
-    const hashPassword = hassingPassword(newPassword);
+    const hashPassword = hashingPassword(newPassword);
     await this.userRepo.update(
       { id },
       {

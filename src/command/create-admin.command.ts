@@ -8,7 +8,7 @@ import { commandConstants, questionConstants } from './command.constant';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hassingPassword } from 'src/common/utils/hash.util';
+import { hashingPassword } from 'src/common/utils/hash.util';
 import { RoleEntity } from 'src/entities/role.entity';
 import { RoleType } from 'src/common/enum/role.enum';
 
@@ -41,7 +41,7 @@ export class CreateAdminCommand extends CommandRunner {
 
     const user = await this.userRepo.save({
       email: account.email,
-      password: hassingPassword(account.password),
+      password: hashingPassword(account.password),
       roles: [adminRole],
     });
 

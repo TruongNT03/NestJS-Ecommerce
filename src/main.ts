@@ -2,11 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { method } from 'lodash';
+import { WinstonModule } from 'nest-winston';
+import { getWinstonConfig } from './common/utils/logger-transport.util';
+import chalk from 'chalk';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const logger = new Logger(AppModule.name);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(getWinstonConfig('TeeShop')),
+  });
   app.enableCors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -33,7 +36,7 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, documentFactory);
 
   await app.listen(PORT, () => {
-    logger.log(`Server listen on PORT: ${PORT}`);
+    console.log(chalk.green(`Server listen on PORT: ${PORT}`));
   });
 }
 bootstrap();

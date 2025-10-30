@@ -1,12 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { AddItemToCartDto } from 'src/modules/cart/dto/request/add-item-to-cart.dto';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { BaseService } from 'src/base.service';
 import { UserRequestPayload } from 'src/modules/auth/auth.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from 'src/entities/cart.entity';
 import { Repository } from 'typeorm';
 import { CartItem } from 'src/entities/cart-item.entity';
+import { UserShareService } from '../user/user-share.service';
+import { CartResponseDto } from './dto/response/cart-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { UpdateQuantityCartItemDto } from './dto/request/update-quantity-cart-item.dto';
+import { UpdateProductVariantCartItemDto } from './dto/request/update-product-variant-cart-item.dto';
+import { ProductVariant } from 'src/entities/product-variant.entity';
+import { ServerException } from 'src/exceptions/sever.exception';
+import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
+import { ListCartItemQueryDto } from './dto/request/list-cart-item-query.dto';
+import { ListCartItemResponseDto } from './dto/response/list-cart-item-response.dto';
+import { CartSummaryResponseDto } from './dto/response/cart-summary-response.dto';
 
 @Injectable()
 export class CartService extends BaseService {
@@ -15,6 +26,8 @@ export class CartService extends BaseService {
     private readonly cartRepo: Repository<Cart>,
     @InjectRepository(CartItem)
     private readonly cartItemRepo: Repository<CartItem>,
+    @InjectRepository(ProductVariant)
+    private readonly productVariantRepo: Repository<ProductVariant>,
   ) {
     super();
   }
@@ -22,26 +35,130 @@ export class CartService extends BaseService {
   async addItemToCart(
     user: UserRequestPayload,
     dto: AddItemToCartDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     const { id } = user;
+
     const { productVariantId, quantity } = dto;
-    const cart = await this.cartRepo.findOne({ where: { userId: id } });
-    const cartItem = await this.cartItemRepo.save({
+    let cart = await this.cartRepo.findOne({ where: { userId: id } });
+
+    if (!cart) {
+      cart = this.cartRepo.create({ userId: user.id });
+      await this.cartRepo.save(cart);
+    }
+
+    await this.cartItemRepo.save({
       productVariantId,
       cartId: cart.id,
       quantity,
     });
+
     return {
       success: true,
     };
   }
 
-  private async createCart(userId: string): Promise<SuccessReponseDto> {
+  private async findOrCreateCart(userId: string): Promise<Cart> {
     const cart = await this.cartRepo.save({
       userId,
     });
+    return cart;
+  }
+
+  async getCartSummary(
+    user: UserRequestPayload,
+  ): Promise<CartResponseDto | []> {
+    const userId = user.id;
+
+    const cart = await this.findOrCreateCart(userId);
+
+    const [cartItems, totalItems] = await Promise.all([
+      this.cartItemRepo
+        .createQueryBuilder('cartItem')
+        .leftJoinAndSelect('cartItem.productVariant', 'productVariant')
+        .leftJoinAndSelect('productVariant.variantValues', 'variantValue')
+        .leftJoinAndSelect('variantValue.variant', 'variant')
+        .leftJoinAndSelect('cartItem.cart', 'cart')
+        .where('cart.userId = :userId', { userId: user.id })
+        .orderBy('cartItem.updatedAt', 'DESC')
+        .limit(5)
+        .getMany(),
+
+      this.cartItemRepo
+        .createQueryBuilder('cartItem')
+        .leftJoinAndSelect('cartItem.cart', 'cart')
+        .where('cart.userId = :userId', { userId })
+        .getCount(),
+    ]);
+
+    return plainToInstance(CartSummaryResponseDto, {
+      id: cart.id,
+      cartItems,
+      totalItems,
+    });
+  }
+
+  async getAllCartItem(user: UserRequestPayload, query: ListCartItemQueryDto) {
+    const { page, pageSize } = query;
+    const queryBuilder = this.cartItemRepo
+      .createQueryBuilder('cartItem')
+      .leftJoinAndSelect('cartItem.productVariant', 'productVariant')
+      .leftJoinAndSelect('productVariant.variantValues', 'variantValue')
+      .leftJoinAndSelect('variantValue.variant', 'variant')
+      .leftJoinAndSelect('cartItem.cart', 'cart')
+      .where('cart.userId = :userId', { userId: user.id })
+      .orderBy('cartItem.updatedAt', 'DESC');
+
+    const { data, paginate } = await this.paginate(
+      queryBuilder,
+      page,
+      pageSize,
+    );
+
+    return plainToInstance(ListCartItemResponseDto, { data, paginate });
+  }
+
+  async updateQuantityCartItem(
+    id: string,
+    dto: UpdateQuantityCartItemDto,
+  ): Promise<SuccessResponseDto> {
+    const { quantity } = dto;
+    await this.cartItemRepo.update({ id }, { quantity });
     return {
       success: true,
     };
+  }
+
+  async updateProductVariantCartItem(
+    id: string,
+    dto: UpdateProductVariantCartItemDto,
+  ): Promise<SuccessResponseDto> {
+    const { productVariantId } = dto;
+
+    const productVariant = await this.productVariantRepo.findOne({
+      where: { id: productVariantId },
+    });
+
+    await this.cartItemRepo.update(
+      { id },
+      { productVariant, productVariantId },
+    );
+
+    return {
+      success: true,
+    };
+  }
+
+  async deleteCartItem(id: string): Promise<SuccessResponseDto> {
+    const cartItem = await this.findOneCartItem(id);
+    await this.cartItemRepo.delete(cartItem);
+    return this.successResponse();
+  }
+
+  private async findOneCartItem(id: string): Promise<CartItem> {
+    const cartItem = await this.cartItemRepo.findOneBy({ id });
+    if (!cartItem) {
+      throw new ServerException(ERROR_RESPONSE.NOT_FOUND);
+    }
+    return cartItem;
   }
 }

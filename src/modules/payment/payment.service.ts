@@ -12,6 +12,8 @@ import { payosConfiguration } from 'src/config';
 import { ConfigType } from '@nestjs/config';
 import { PayOS } from '@payos/node';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
+import { Payment } from 'src/entities/payment.entity';
+import { PaymentStatus } from 'src/common/enum/payment-status.enum';
 
 @Injectable()
 export class PaymentService extends BaseService {
@@ -21,6 +23,8 @@ export class PaymentService extends BaseService {
     private readonly payOSConfig: ConfigType<typeof payosConfiguration>,
     @InjectRepository(Order)
     private readonly orderRepo: Repository<Order>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
   ) {
     super();
     this.payOS = new PayOS({
@@ -78,6 +82,25 @@ export class PaymentService extends BaseService {
       returnUrl: this.payOSConfig.returnUrl,
       signature: this.payOSConfig.signature,
     });
+
+    await this.orderRepo.update(
+      {
+        id: order.id,
+      },
+      {
+        orderCode: `${orderCode}`,
+      },
+    );
+
+    const payment = this.paymentRepo.create({
+      orderCode: `${orderCode}`,
+      amount,
+      paymentType: PaymentType.QR,
+      status: PaymentStatus.PENDING,
+      orderId: order.id,
+    });
+
+    await this.paymentRepo.save(payment);
 
     return { checkoutUrl: createPaymentLinkResponse.checkoutUrl };
   }

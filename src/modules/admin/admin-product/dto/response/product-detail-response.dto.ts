@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CategoryResponseDto } from 'src/modules/admin/admin-categories/dto/response/category-response.dto';
 import { ProductDetailVariantResponseDto } from './produt-detail-variant-response.dto';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
-import { ProductImageDetailReponseDto } from './product-image-detail-response.dto';
+import { ProductImageDetailResponseDto } from './product-image-detail-response.dto';
 
 @Exclude()
 export class ProductDetailResponseDto {
@@ -36,9 +36,9 @@ export class ProductDetailResponseDto {
   categories: CategoryResponseDto[];
 
   @Expose()
-  @ApiProperty({ type: [ProductImageDetailReponseDto] })
+  @ApiProperty({ type: [ProductImageDetailResponseDto] })
   @Transform(({ value }) => value?.map((i) => ({ id: i.id, url: i.url })))
-  productImages: ProductImageDetailReponseDto[];
+  productImages: ProductImageDetailResponseDto[];
 
   @Expose()
   @ApiProperty({ type: [ProductDetailVariantResponseDto] })

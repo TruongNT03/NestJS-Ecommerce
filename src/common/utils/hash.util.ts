@@ -1,13 +1,13 @@
 import * as bcrypt from 'bcrypt';
 
-export const hassingPassword = (password: string): string => {
-  const hassPassword = bcrypt.hashSync(password, 10);
-  return hassPassword;
+export const hashingPassword = (password: string): string => {
+  const hashPassword = bcrypt.hashSync(password, 10);
+  return hashPassword;
 };
 
 export const comparePassword = (
-  hassingPassword: string,
+  hashingPassword: string,
   password: string,
 ): boolean => {
-  return bcrypt.compareSync(password, hassingPassword);
+  return bcrypt.compareSync(password, hashingPassword);
 };

@@ -13,6 +13,8 @@ import { AbstractEntity } from './abstract.entity';
 import { Notification } from './notification.entity';
 import { Conversation } from './conversation.entity';
 import { Cart } from 'src/entities/cart.entity';
+import { Address } from './address.entity';
+import { Order } from './order.entity';
 
 export const TableName = 'users';
 
@@ -60,4 +62,10 @@ export class UserEntity extends AbstractEntity<UserEntity> {
 
   @OneToOne(() => Cart, (cart) => cart.user)
   cart: Cart;
+
+  @OneToMany(() => Address, (address) => address.user)
+  addresses: Address[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  order: Order[];
 }

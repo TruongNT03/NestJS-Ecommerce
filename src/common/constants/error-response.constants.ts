@@ -49,6 +49,6 @@ export const ERROR_RESPONSE = {
   NOT_FOUND: {
     statusCode: HttpStatus.NOT_FOUND,
     errorCode: 'not_found',
-    message: 'Not Found Exception',
+    message: 'Resource not found',
   },
 };

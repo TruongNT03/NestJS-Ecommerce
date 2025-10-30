@@ -18,7 +18,7 @@ import {
 import { CreateProductDto } from 'src/modules/admin/admin-product/dto/request/create-product.dto';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { CreateVariantDto } from 'src/modules/admin/admin-product/dto/request/create-variant.dto';
 import { ListVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/list-variant-response.dto';
 import { VariantQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-query.dto';
@@ -31,7 +31,7 @@ import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/re
 import { UpdateProductDto } from './dto/request/update-product.dto';
 import { UpdateProductStatusDto } from './dto/request/update-product-status.dto';
 import { SaveUuidResponseDto } from 'src/common/dto/save-response.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 
 @ApiTags('[ADMIN] PRODUCT MANAGEMENT')
@@ -65,12 +65,12 @@ export class AdminProductController {
   }
 
   @ApiOperation({ summary: '[ADMIN] UPDATE PRODUCT BY ID' })
-  @ApiResponse({ status: 200, type: SuccessReponseDto })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Put('/:id')
   async update(
     @Param('id') id: string,
     @Body() body: UpdateProductDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.adminProductService.update(id, body);
   }
 
@@ -94,11 +94,11 @@ export class AdminProductController {
   }
 
   @ApiOperation({ summary: '[ADMIN] CREATE VARIANT' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('option/variant')
   async createVariant(
     @Body() body: CreateVariantDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.adminProductService.createVariant(body);
   }
 
@@ -112,11 +112,11 @@ export class AdminProductController {
   }
 
   @ApiOperation({ summary: '[ADMIN] CREATE VARIANT VALUE BY VARIANT ID' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('option/variant-value')
   async createVariantValue(
     @Body() body: CreateVariantValueDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.adminProductService.createVariantValue(body);
   }
 

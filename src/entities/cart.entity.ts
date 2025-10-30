@@ -19,7 +19,7 @@ export class Cart extends AbstractEntity<Cart> {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column('uuid')
   userId: string;
 
   @OneToOne(() => UserEntity, (user) => user.cart)

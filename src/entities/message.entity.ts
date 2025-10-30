@@ -18,7 +18,7 @@ export class MessageEntity extends AbstractEntity<MessageEntity> {
   @Column()
   content: string;
 
-  @Column()
+  @Column('uuid')
   senderId: string;
 
   @Column()

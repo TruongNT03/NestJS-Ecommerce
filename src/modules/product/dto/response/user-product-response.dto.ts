@@ -1,7 +1,7 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductImage } from 'src/entities/product-image.entity';
-import { ProductImageDetailReponseDto } from 'src/modules/admin/admin-product/dto/response/product-image-detail-response.dto';
+import { ProductImageDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-image-detail-response.dto';
 import { ProductVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/product-response.dto';
 
 @Exclude()
@@ -28,9 +28,9 @@ export class UserProductResponseDto {
   price: number;
 
   @Expose()
-  @ApiProperty({ type: [ProductImageDetailReponseDto] })
-  @Type(() => ProductImageDetailReponseDto)
-  productImages: ProductImageDetailReponseDto[];
+  @ApiProperty({ type: [ProductImageDetailResponseDto] })
+  @Type(() => ProductImageDetailResponseDto)
+  productImages: ProductImageDetailResponseDto[];
 
   // @Expose()
   // @ApiProperty({ type: [ProductVariantResponseDto] })

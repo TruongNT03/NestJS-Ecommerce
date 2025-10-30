@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/base.service';
 import { UserRequestPayload } from '../auth/auth.interface';
 import { CreateConversationDto } from './dto/request/create-conversation.dto';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { DataSource, In, Not, Repository } from 'typeorm';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
@@ -42,7 +42,7 @@ export class ChatService extends BaseService {
   async createConversation(
     user: UserRequestPayload,
     dto: CreateConversationDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     const { userId } = dto;
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -51,12 +51,12 @@ export class ChatService extends BaseService {
       const conversation = await queryRunner.manager.save(Conversation, {}, {});
 
       // Linking if has admin online
-      const adminOnlines = this.onlineUserService.getAdminOnline();
+      const onlineAdmins = this.onlineUserService.getAdminOnline();
 
-      if (adminOnlines && adminOnlines.length) {
-        // Ramdom admin
-        const ramdomAdmin =
-          adminOnlines[Math.floor(Math.random() * adminOnlines.length)];
+      if (onlineAdmins && onlineAdmins.length) {
+        // Random admin
+        const randomAdmin =
+          onlineAdmins[Math.floor(Math.random() * onlineAdmins.length)];
 
         // Create UserConversation
         await Promise.all([
@@ -69,13 +69,13 @@ export class ChatService extends BaseService {
           // For admin
           queryRunner.manager.save(UserConversation, {
             conversationId: conversation.id,
-            userId: ramdomAdmin,
+            userId: randomAdmin,
           }),
         ]);
       } else {
         // Have not any admin online
 
-        const [, adminWattingConversation] = await Promise.all([
+        const [, adminWaitingConversation] = await Promise.all([
           // Create for user
           queryRunner.manager.save(UserConversation, {
             conversationId: conversation.id,
@@ -89,9 +89,9 @@ export class ChatService extends BaseService {
           }),
         ]);
 
-        // Push watting conversation into the queue
+        // Push waiting conversation into the queue
         await this.chatQueueProducer.addNewClientInitChat(
-          adminWattingConversation,
+          adminWaitingConversation,
         );
       }
       // Init waiting message

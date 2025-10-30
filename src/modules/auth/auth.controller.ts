@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/request/register.dto';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { VerifyRegisterDto } from './dto/request/verify-register.dto';
 import { RegisterResponseDto } from './dto/response/register-response.dto';
@@ -18,7 +18,7 @@ import { VerifyForgotPasswordDto } from './dto/request/verify-forgot-password.dt
 import { SaveEntityResponseDto } from 'src/common/dto/save-entity-response.dto';
 import { ChangePasswordDto } from './dto/request/change-password.dto';
 import { ChangePasswordResponseDto } from './dto/response/change-password-response.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
@@ -58,9 +58,9 @@ export class AuthController {
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'LOGOUT ACCOUNT' })
-  @ApiResponse({ status: 200, type: SuccessReponseDto })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Get('logout')
-  async logout(@User() user: UserRequestPayload): Promise<SuccessReponseDto> {
+  async logout(@User() user: UserRequestPayload): Promise<SuccessResponseDto> {
     return await this.authService.logout(user);
   }
 
@@ -96,19 +96,19 @@ export class AuthController {
 
   @Public()
   @ApiOperation({ summary: 'VERIFY FORGOT PASSWORD' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('forgot-password/verify/:token')
   async verifyForgotPassword(
     @Body() body: VerifyForgotPasswordDto,
     @Param('token') token: string,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.authService.verifyForgotPassword(token, body);
   }
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'CHANGE PASSWORD' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('change-password')
   async changePassword(
     @User() user: UserRequestPayload,

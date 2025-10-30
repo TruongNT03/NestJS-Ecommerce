@@ -6,7 +6,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { User } from 'src/decorators/user.decorator';
 import { UserRequestPayload } from '../auth/auth.interface';
 import { CreateConversationDto } from './dto/request/create-conversation.dto';
@@ -22,12 +22,12 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @ApiOperation({ summary: 'CREATE CONVERSATION' })
-  @ApiResponse({ status: 201, type: SuccessReponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('conversation')
   async createConversation(
     @User() user: UserRequestPayload,
     @Body() body: CreateConversationDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.chatService.createConversation(user, body);
   }
 

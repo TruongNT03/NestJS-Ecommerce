@@ -5,11 +5,13 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AbstractEntity } from 'src/entities/abstract.entity';
 import { Product } from 'src/entities/product.entity';
 import { VariantValue } from 'src/entities/variant-value.entity';
+import { OrderItem } from './order-item.entity';
 
 export const TableName = 'product_variants';
 
@@ -47,4 +49,7 @@ export class ProductVariant extends AbstractEntity<ProductVariant> {
     },
   })
   variantValues: VariantValue[];
+
+  @OneToOne(() => OrderItem, (orderItem) => orderItem.productVariant)
+  orderItem: OrderItem;
 }

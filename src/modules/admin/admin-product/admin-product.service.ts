@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateProductDto } from 'src/modules/admin/admin-product/dto/request/create-product.dto';
 import { CreateVariantDto } from 'src/modules/admin/admin-product/dto/request/create-variant.dto';
-import { SuccessReponseDto } from 'src/common/dto/success-response.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { BaseService } from 'src/base.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Variant } from 'src/entities/variant.entity';
@@ -31,7 +31,7 @@ import { ProductCategories } from 'src/entities/product-categories.entity';
 import { UpdateProductVariantDto } from './dto/request/update-product-variant.dto';
 import { SaveUuidResponseDto } from 'src/common/dto/save-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { S3Service } from 'src/modules/shared/s3/s3.service';
 import { BucketFolder } from 'src/common/enum/bucket-folder.enum';
 import { ProductImage } from 'src/entities/product-image.entity';
@@ -182,7 +182,7 @@ export class AdminProductService extends BaseService {
     return queryBuilder;
   }
 
-  async createVariant(dto: CreateVariantDto): Promise<SuccessReponseDto> {
+  async createVariant(dto: CreateVariantDto): Promise<SuccessResponseDto> {
     const { name } = dto;
     await this.variantRepo.save({
       name,
@@ -251,8 +251,8 @@ export class AdminProductService extends BaseService {
 
     // Find exist Product Variant in request
     const existProductVariants = allExistProductVariants.filter(
-      (productVarinat) =>
-        productVariantIdsFromRequest.includes(productVarinat.id),
+      (productVariant) =>
+        productVariantIdsFromRequest.includes(productVariant.id),
     );
 
     // Find new Product Variant from request without id
@@ -262,13 +262,13 @@ export class AdminProductService extends BaseService {
 
     // Need deleted Product Variant
     const deleteProductVariants = allExistProductVariants.filter(
-      (productVarinat) =>
-        !productVariantIdsFromRequest.includes(productVarinat.id),
+      (productVariant) =>
+        !productVariantIdsFromRequest.includes(productVariant.id),
     );
     return { existProductVariants, newProductVariants, deleteProductVariants };
   }
 
-  async update(id: string, dto: UpdateProductDto): Promise<SuccessReponseDto> {
+  async update(id: string, dto: UpdateProductDto): Promise<SuccessResponseDto> {
     const {
       name,
       description,
@@ -401,7 +401,7 @@ export class AdminProductService extends BaseService {
           })),
         );
       } else {
-        // If array empty or undefind delete all old Product Variant
+        // If array empty or undefined delete all old Product Variant
         await queryRunner.manager.delete(ProductVariant, { productId: id });
       }
 
@@ -533,7 +533,7 @@ export class AdminProductService extends BaseService {
 
   async createVariantValue(
     dto: CreateVariantValueDto,
-  ): Promise<SuccessReponseDto> {
+  ): Promise<SuccessResponseDto> {
     const { value, variantId } = dto;
     await this.variantValueRepo.save({
       value,

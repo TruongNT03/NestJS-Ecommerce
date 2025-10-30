@@ -1,5 +1,5 @@
 import { SelectQueryBuilder } from 'typeorm';
-import { SuccessReponseDto } from './common/dto/success-response.dto';
+import { SuccessResponseDto } from './common/dto/success-response.dto';
 import { PAGINATE_CONSTANTS } from './common/constants/paginate.constants';
 import { PaginateResponseDto } from './common/dto/paginate-response.dto';
 import {
@@ -31,7 +31,7 @@ export class BaseService {
     };
   }
 
-  protected successResponse(): SuccessReponseDto {
+  protected successResponse(): SuccessResponseDto {
     return {
       success: true,
     };

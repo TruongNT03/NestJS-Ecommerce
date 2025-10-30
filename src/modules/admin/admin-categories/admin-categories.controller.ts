@@ -12,7 +12,7 @@ import {
 } from '@nestjs/swagger';
 import { ListCategoryResponseDto } from './dto/response/list-category-response.dto';
 import { ListCategoryQueryDto } from './dto/resquest/list-category-query.dto';
-import { UploadResponseDto } from 'src/common/dto/upload-reponse.dto';
+import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 
 @ApiTags('[ADMIN] CATEGORIES MANAGEMANT')

@@ -29,6 +29,8 @@ import { AddressModule } from './modules/address/address.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { PaymentWebhookModule } from './modules/webhooks/payment/payment-webhook.module';
 import { getWinstonConfig } from './common/utils/logger-transport.util';
+import { AdminChatModule } from './modules/admin/admin-chat/admin-chat.module';
+import { AdminModule } from 'src/modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -57,15 +59,14 @@ import { getWinstonConfig } from './common/utils/logger-transport.util';
         },
       }),
     }),
-    UserModule,
     AuthModule,
+    AdminModule,
+    UserModule,
     RedisModule,
     MailModule,
     S3Module,
     NotificationModule,
-    AdminUserModule,
-    AdminCategoriesModule,
-    AdminProductModule,
+
     ChatModule,
     ChatQueueModule,
     OnlineUserModule,

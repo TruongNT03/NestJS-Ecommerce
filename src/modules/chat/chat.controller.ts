@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import {
   ApiBearerAuth,
@@ -13,6 +13,9 @@ import { CreateConversationDto } from './dto/request/create-conversation.dto';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { CreateMessageDto } from './dto/request/create-message.dto';
+import { ListMessageResponseDto } from 'src/modules/chat/dto/response/list-message-response.dto';
+import { ListMessageQueryDto } from 'src/modules/chat/dto/request/list-message-query.dto';
+import { ConversationResponseDto } from 'src/modules/chat/dto/response/conversation-reponse.dto';
 
 @Controller('chat')
 @ApiTags('CHAT')
@@ -26,16 +29,34 @@ export class ChatController {
   @Post('conversation')
   async createConversation(
     @User() user: UserRequestPayload,
-    @Body() body: CreateConversationDto,
   ): Promise<SuccessResponseDto> {
-    return await this.chatService.createConversation(user, body);
+    return await this.chatService.createConversation(user);
   }
 
-  @ApiOperation({ summary: 'GET ALL CONVERSATION' })
-  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: '[USER] GET CONVERSATION' })
+  @ApiResponse({ status: 200, type: ConversationResponseDto })
   @Get('conversation')
-  async findAllConversations(@User() user: UserRequestPayload) {
-    return await this.chatService.getAllConversation(user);
+  async getConversation(
+    @User() user: UserRequestPayload,
+  ): Promise<ConversationResponseDto> {
+    return await this.chatService.getConversation(user);
+  }
+
+  // @ApiOperation({ summary: 'GET ALL CONVERSATION' })
+  // @ApiResponse({ status: 200 })
+  // @Get('conversation')
+  // async findAllConversations(@User() user: UserRequestPayload) {
+  //   return await this.chatService.getAllConversation(user);
+  // }
+
+  @ApiOperation({ summary: '[USER] GET LIST MESSAGES' })
+  @ApiResponse({ status: 200, type: ListMessageResponseDto })
+  @Get('message')
+  async getListMessages(
+    @User() user: UserRequestPayload,
+    @Query() query: ListMessageQueryDto,
+  ): Promise<ListMessageResponseDto> {
+    return await this.chatService.getListMessages(user, query);
   }
 
   // Need implement more

@@ -21,6 +21,8 @@ import { ChatQueueProducer } from '../shared/queue/chat/chat-queue.producer';
 import { SaveNotificationDto } from '../notification/dto/request/save-notification.dto';
 import { NotificationService } from '../notification/notification.service';
 import { RoleType } from 'src/common/enum/role.enum';
+import { ListMessageQueryDto } from 'src/modules/chat/dto/request/list-message-query.dto';
+import { ListMessageResponseDto } from 'src/modules/chat/dto/response/list-message-response.dto';
 
 @Injectable()
 export class ChatService extends BaseService {
@@ -41,9 +43,7 @@ export class ChatService extends BaseService {
   }
   async createConversation(
     user: UserRequestPayload,
-    dto: CreateConversationDto,
   ): Promise<SuccessResponseDto> {
-    const { userId } = dto;
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.startTransaction();
@@ -209,5 +209,44 @@ export class ChatService extends BaseService {
         userId: userConversation.userId,
       }));
     return newMessageNotifications;
+  }
+
+  async getListMessages(
+    user: UserRequestPayload,
+    dto: ListMessageQueryDto,
+  ): Promise<ListMessageResponseDto> {
+    const { page, pageSize } = dto;
+    const conversation = await this.conversationRepo.findOne({
+      where: { users: { id: user.id } },
+    });
+
+    const queryBuilder = this.messageRepo
+      .createQueryBuilder('m')
+      .where('m.conversationId = :conversationId', {
+        conversationId: conversation.id,
+      })
+      .orderBy('m.createdAt', 'DESC');
+
+    const { data, paginate } = await this.paginate(
+      queryBuilder,
+      page,
+      pageSize,
+    );
+
+    return plainToInstance(ListMessageResponseDto, {
+      data,
+      paginate,
+    });
+  }
+
+  async getConversation(
+    user: UserRequestPayload,
+  ): Promise<ConversationResponseDto> {
+    const conversation = await this.conversationRepo.findOne({
+      where: { users: { id: user.id } },
+      relations: ['users'],
+    });
+
+    return plainToInstance(ConversationResponseDto, conversation);
   }
 }

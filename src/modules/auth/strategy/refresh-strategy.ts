@@ -29,7 +29,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     }
 
     const userTokenKey = this.redisService.getUserTokenKey(id, jti);
-    const isValidToken = this.redisService.getValue(userTokenKey);
+    const isValidToken = await this.redisService.getValue(userTokenKey);
     if (!isValidToken) {
       throw new ServerException(ERROR_RESPONSE.UNAUTHORIZED);
     }

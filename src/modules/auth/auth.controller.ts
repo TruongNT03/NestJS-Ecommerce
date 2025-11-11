@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/request/register.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
@@ -23,6 +31,7 @@ import { UploadDto } from 'src/common/dto/upload.dto';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UpdateProfileDto } from './dto/request/update-profile.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -75,6 +84,8 @@ export class AuthController {
 
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
+  @Public()
+  @UseGuards(AuthGuard('refresh'))
   @ApiOperation({ summary: 'REFRESH TOKEN' })
   @ApiResponse({ status: 201, type: RefreshTokenResponseDto })
   @Get('refresh-token')

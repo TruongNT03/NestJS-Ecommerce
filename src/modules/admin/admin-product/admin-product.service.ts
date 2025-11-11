@@ -5,7 +5,7 @@ import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { BaseService } from 'src/base.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Variant } from 'src/entities/variant.entity';
-import { DataSource, In, Not, Repository } from 'typeorm';
+import { Brackets, DataSource, In, Not, Repository } from 'typeorm';
 import { VariantQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-query.dto';
 import { ListVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/list-variant-response.dto';
 import { plainToInstance } from 'class-transformer';
@@ -19,7 +19,10 @@ import { Product } from 'src/entities/product.entity';
 import { ProductVariant } from 'src/entities/product-variant.entity';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
-import { ListProductQueryDto } from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
+import {
+  AdminProductSortField,
+  ListProductQueryDto,
+} from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
 import { ListProductResponseDto } from 'src/modules/admin/admin-product/dto/response/list-product-response.dto';
 import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
@@ -164,7 +167,7 @@ export class AdminProductService extends BaseService {
   }
 
   private async getQueryBuilderFindAllProduct(query: ListProductQueryDto) {
-    const { categoriesIds } = query;
+    const { categoriesIds, search, sortBy, sortOrder } = query;
 
     const queryBuilder = this.productRepo
       .createQueryBuilder('p')
@@ -178,7 +181,41 @@ export class AdminProductService extends BaseService {
       queryBuilder.andWhere('pc.id IN (:...categoriesIds)', { categoriesIds });
     }
 
-    queryBuilder.orderBy('p.updatedAt', 'DESC');
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(p.name) LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('LOWER(p.description) LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('LOWER(p.status) LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    const sortFieldMap: Record<AdminProductSortField, string> = {
+      [AdminProductSortField.NAME]: 'p.name',
+      [AdminProductSortField.DESCRIPTION]: 'p.description',
+      [AdminProductSortField.STATUS]: 'p.status',
+      [AdminProductSortField.CREATED_AT]: 'p.createdAt',
+      [AdminProductSortField.UPDATED_AT]: 'p.updatedAt',
+    };
+
+    const sortField = sortFieldMap[sortBy];
+    if (sortField) {
+      if (sortOrder) {
+        queryBuilder.orderBy(sortField, sortOrder);
+      } else {
+        queryBuilder.orderBy(sortField, 'DESC');
+      }
+    } else {
+      queryBuilder.orderBy('p.createdAt', 'DESC');
+    }
+
     return queryBuilder;
   }
 

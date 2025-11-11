@@ -366,6 +366,7 @@ export class AdminProductService extends BaseService {
             await queryRunner.manager.save(ProductImage, {
               id: imageUrl.id,
               productId: product.id,
+              url: imageUrl.url,
             });
           }),
         );

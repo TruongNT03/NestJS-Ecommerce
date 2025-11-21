@@ -63,7 +63,13 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
+    entrypoint: >
+      sh -c "
+      trap exit TERM; 
+      while :; do 
+        certbot certonly --webroot -w /var/www/certbot -d api.teeshop.io.vn --email youremail@example.com --agree-tos --non-interactive;
+        sleep 12h & wait $${!};
+      done"
     networks:
       - web
 

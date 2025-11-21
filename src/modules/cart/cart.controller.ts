@@ -26,6 +26,7 @@ import { UpdateQuantityCartItemDto } from './dto/request/update-quantity-cart-it
 import { UpdateProductVariantCartItemDto } from './dto/request/update-product-variant-cart-item.dto';
 import { ListCartItemResponseDto } from './dto/response/list-cart-item-response.dto';
 import { ListCartItemQueryDto } from './dto/request/list-cart-item-query.dto';
+import { CartSummaryResponseDto } from 'src/modules/cart/dto/response/cart-summary-response.dto';
 
 @ApiTags('[USER] CART')
 @ApiBearerAuth()
@@ -45,11 +46,11 @@ export class CartController {
   }
 
   @ApiOperation({ summary: '[USER] GET CART SUMMARY' })
-  @ApiResponse({ status: 200, type: CartResponseDto })
+  @ApiResponse({ status: 200, type: CartSummaryResponseDto })
   @Get('')
   async getCartSummary(
     @User() user: UserRequestPayload,
-  ): Promise<CartResponseDto | []> {
+  ): Promise<CartSummaryResponseDto | []> {
     return await this.cartService.getCartSummary(user);
   }
 

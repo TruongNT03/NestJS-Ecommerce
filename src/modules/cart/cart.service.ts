@@ -66,7 +66,7 @@ export class CartService extends BaseService {
 
   async getCartSummary(
     user: UserRequestPayload,
-  ): Promise<CartResponseDto | []> {
+  ): Promise<CartSummaryResponseDto | []> {
     const userId = user.id;
 
     const cart = await this.findOrCreateCart(userId);
@@ -75,11 +75,15 @@ export class CartService extends BaseService {
       this.cartItemRepo
         .createQueryBuilder('cartItem')
         .leftJoinAndSelect('cartItem.productVariant', 'productVariant')
+        .leftJoinAndSelect('productVariant.product', 'p')
+        .leftJoinAndSelect('p.productImages', 'pi')
         .leftJoinAndSelect('productVariant.variantValues', 'variantValue')
         .leftJoinAndSelect('variantValue.variant', 'variant')
         .leftJoinAndSelect('cartItem.cart', 'cart')
         .where('cart.userId = :userId', { userId: user.id })
-        .orderBy('cartItem.updatedAt', 'DESC')
+        .distinctOn(['cartItem.id'])
+        .orderBy('cartItem.id', 'DESC')
+        .addOrderBy('cartItem.updatedAt', 'DESC')
         .limit(5)
         .getMany(),
 
@@ -102,6 +106,8 @@ export class CartService extends BaseService {
     const queryBuilder = this.cartItemRepo
       .createQueryBuilder('cartItem')
       .leftJoinAndSelect('cartItem.productVariant', 'productVariant')
+      .leftJoinAndSelect('productVariant.product', 'product')
+      .leftJoinAndSelect('product.productImages', 'productImages')
       .leftJoinAndSelect('productVariant.variantValues', 'variantValue')
       .leftJoinAndSelect('variantValue.variant', 'variant')
       .leftJoinAndSelect('cartItem.cart', 'cart')

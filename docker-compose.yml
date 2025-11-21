@@ -68,3 +68,6 @@ services:
 networks:
   web:
     driver: bridge
+
+volumes:
+  postgres_data:

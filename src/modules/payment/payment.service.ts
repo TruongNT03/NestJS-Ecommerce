@@ -74,7 +74,7 @@ export class PaymentService extends BaseService {
       orderCode: orderCode,
       amount: amount,
       description: `${orderCode}`,
-      buyerName: order.user.firstName + ' ' + order.user.lastName,
+      buyerName: order.user.name,
       buyerAddress: order.address.address,
       buyerEmail: order.user.email,
       items: listItems,

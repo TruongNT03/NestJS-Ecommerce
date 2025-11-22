@@ -164,19 +164,11 @@ export class AuthService extends BaseService {
   }
 
   async getProfile(id: string): Promise<UserResponseDto> {
-    await this.notificationService.create({
-      alertTo: RoleType.USER,
-      userId: id,
-      meta: { text: 'Hello' },
-      content: 'Content',
-      navigateTo: 'Navigate to',
-      title: 'Title',
-      triggerBy: 'Trigger by',
+    const user = await this.userShareService.findOne(id);
+    return plainToInstance(UserResponseDto, {
+      ...user,
+      roles: user.roles.map((role) => role.name),
     });
-    return plainToInstance(
-      UserResponseDto,
-      await this.userShareService.findOne(id),
-    );
   }
 
   async refreshToken(user: JwtPayload): Promise<RefreshTokenResponseDto> {
@@ -260,8 +252,17 @@ export class AuthService extends BaseService {
     user: UserRequestPayload,
     dto: ChangePasswordDto,
   ): Promise<ChangePasswordResponseDto> {
+    const { newPassword, password } = dto;
     const { id } = user;
-    const { newPassword } = dto;
+
+    const userEntity = await this.userShareService.findOne(id);
+
+    if (!comparePassword(userEntity.password, password)) {
+      throw new ServerException({
+        ...ERROR_RESPONSE.BAD_REQUEST,
+        message: 'Mật khẩu không chính xác',
+      });
+    }
 
     const hashPassword = hashingPassword(newPassword);
     await this.userRepo.update(
@@ -291,7 +292,7 @@ export class AuthService extends BaseService {
   async updateProfile(
     user: UserRequestPayload,
     dto: UpdateProfileDto,
-  ): Promise<SaveEntityResponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.userShareService.updateProfile(user, dto);
   }
 }

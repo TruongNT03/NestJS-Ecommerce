@@ -119,7 +119,7 @@ export class AuthController {
   @Role([RoleType.USER, RoleType.ADMIN])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'CHANGE PASSWORD' })
-  @ApiResponse({ status: 201, type: SuccessResponseDto })
+  @ApiResponse({ status: 201, type: ChangePasswordResponseDto })
   @Post('change-password')
   async changePassword(
     @User() user: UserRequestPayload,
@@ -140,12 +140,12 @@ export class AuthController {
   @Role([RoleType.ADMIN, RoleType.USER])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'UPDATE PROFILE' })
-  @ApiResponse({ status: 201, type: SaveEntityResponseDto })
+  @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Put('update-profile')
   async updateProfile(
     @User() user: UserRequestPayload,
     @Body() body: UpdateProfileDto,
-  ): Promise<SaveEntityResponseDto> {
+  ): Promise<SuccessResponseDto> {
     return await this.authService.updateProfile(user, body);
   }
 }

@@ -12,15 +12,19 @@ import { RoleEntity } from 'src/entities/role.entity';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UserRequestPayload } from '../auth/auth.interface';
 import { UpdateProfileDto } from '../auth/dto/request/update-profile.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
+import { BaseService } from 'src/base.service';
 
 @Injectable()
-export class UserShareService {
+export class UserShareService extends BaseService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     @InjectRepository(RoleEntity)
     private readonly roleRepository: Repository<RoleEntity>,
-  ) {}
+  ) {
+    super();
+  }
   async findOneByEmail(email: string): Promise<UserResponseDto> {
     return plainToInstance(
       UserResponseDto,
@@ -28,7 +32,7 @@ export class UserShareService {
     );
   }
 
-  async findOne(id: string): Promise<UserResponseDto> {
+  async findOne(id: string) {
     const user = await this.userRepo.findOne({
       where: { id },
       relations: ['roles'],
@@ -36,7 +40,8 @@ export class UserShareService {
     if (!user) {
       throw new ServerException(ERROR_RESPONSE.USER_NOT_FOUND);
     }
-    return plainToInstance(UserResponseDto, user);
+
+    return user;
   }
 
   async create(dto: CreateUserDto): Promise<SaveEntityResponseDto> {
@@ -62,7 +67,7 @@ export class UserShareService {
   async updateProfile(
     user: UserRequestPayload,
     dto: UpdateProfileDto,
-  ): Promise<SaveEntityResponseDto> {
+  ): Promise<SuccessResponseDto> {
     const userEntity = await this.findOne(user.id);
     await this.userRepo.update(
       { id: userEntity.id },
@@ -70,8 +75,6 @@ export class UserShareService {
         ...dto,
       },
     );
-    return {
-      id: userEntity.id,
-    };
+    return this.successResponse();
   }
 }

@@ -1,16 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUrl } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsString, IsUrl } from 'class-validator';
+
+export enum UserGender {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
 
 export class UpdateProfileDto {
-  @ApiProperty()
+  @ApiProperty({ type: String })
   @IsString()
-  firstName: string;
+  name: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String })
   @IsString()
-  lastName: string;
+  phoneNumber: string;
 
-  @ApiProperty()
-  @IsUrl()
+  @ApiPropertyOptional({ type: String })
+  @IsString()
   avatar: string;
+
+  @ApiProperty({ enum: UserGender })
+  @IsEnum(UserGender)
+  gender: UserGender;
 }

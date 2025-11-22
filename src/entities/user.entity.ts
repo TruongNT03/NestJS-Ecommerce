@@ -15,6 +15,7 @@ import { Conversation } from './conversation.entity';
 import { Cart } from 'src/entities/cart.entity';
 import { Address } from './address.entity';
 import { Order } from './order.entity';
+import { UserGender } from 'src/modules/auth/dto/request/update-profile.dto';
 
 export const TableName = 'users';
 
@@ -23,16 +24,14 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({
-    unique: true,
-  })
+  @Column({ unique: true })
   email: string;
 
   @Column()
-  firstName: string;
+  name: string;
 
   @Column()
-  lastName: string;
+  phoneNumber: string;
 
   @Column()
   avatar: string;
@@ -40,6 +39,9 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   @Exclude()
   @Column()
   password: string;
+
+  @Column()
+  gender: UserGender;
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification;

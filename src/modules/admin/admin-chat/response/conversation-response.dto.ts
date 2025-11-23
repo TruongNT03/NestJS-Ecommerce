@@ -9,11 +9,7 @@ export class AdminConversationUserResponseDto {
 
   @Expose()
   @ApiProperty({ type: String })
-  firstName: string;
-
-  @Expose()
-  @ApiProperty({ type: String })
-  lastName: string;
+  name: string;
 
   @Expose()
   @ApiProperty({ type: String })

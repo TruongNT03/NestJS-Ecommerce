@@ -21,7 +21,16 @@ export class Address extends AbstractEntity<Address> {
   userId: string;
 
   @Column()
-  address: string;
+  detail: string;
+
+  @Column()
+  phoneNumber: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  isDefault: boolean;
 
   @ManyToOne(() => UserEntity, (user) => user.addresses)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })

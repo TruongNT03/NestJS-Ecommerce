@@ -101,7 +101,7 @@ export class AuthService extends BaseService {
       relations: ['roles'],
     });
     if (!user) {
-      throw new ServerException(ERROR_RESPONSE.USER_NOT_FOUND);
+      throw new ServerException(ERROR_RESPONSE.INCREDENTIAL);
     }
     if (!user || !comparePassword(user.password, password)) {
       throw new ServerException(ERROR_RESPONSE.INCREDENTIAL);

@@ -75,7 +75,7 @@ export class PaymentService extends BaseService {
       amount: amount,
       description: `${orderCode}`,
       buyerName: order.user.name,
-      buyerAddress: order.address.address,
+      buyerAddress: order.address.detail,
       buyerEmail: order.user.email,
       items: listItems,
       cancelUrl: this.payOSConfig.cancelUrl,

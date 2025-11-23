@@ -9,5 +9,17 @@ export class AddressResponseDto {
 
   @Expose()
   @ApiProperty({ type: String })
-  address: string;
+  detail: string;
+
+  @Expose()
+  @ApiProperty({ type: String })
+  name: string;
+
+  @Expose()
+  @ApiProperty({ type: String })
+  phoneNumber: string;
+
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isDefault: boolean;
 }

@@ -49,7 +49,18 @@ export class AddressController {
   async update(
     @Param('id') id: string,
     @Body() body: UpdateAddressDto,
+    @User() user: UserRequestPayload,
   ): Promise<SuccessResponseDto> {
-    return await this.addressService.update(id, body);
+    return await this.addressService.update(id, body, user);
+  }
+
+  @ApiOperation({ summary: '[USER] UPDATE TO DEFAULT ADDRESS' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
+  @Put(':id/default')
+  async updateToDefault(
+    @Param('id') id: string,
+    @User() user: UserRequestPayload,
+  ): Promise<SuccessResponseDto> {
+    return await this.addressService.updateToDefault(id, user);
   }
 }

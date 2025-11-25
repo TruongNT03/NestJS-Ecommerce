@@ -37,7 +37,7 @@ export class PaymentController {
   @Get(':id/status')
   async checkPaymentStatus(
     @Param('id') id: string,
-    @User('id') user: UserRequestPayload,
+    @User() user: UserRequestPayload,
   ): Promise<CheckPaymentStatusResponseDto> {
     return await this.paymentService.checkPaymentStatus(id, user);
   }

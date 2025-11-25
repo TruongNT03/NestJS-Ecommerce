@@ -14,6 +14,10 @@ import { PayOS } from '@payos/node';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
 import { Payment } from 'src/entities/payment.entity';
 import { PaymentStatus } from 'src/common/enum/payment-status.enum';
+import { CreatePaymentResponseDto } from './dto/response/create-payment-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { CheckPaymentStatusResponseDto } from './dto/response/check-payment-status-response.dto';
+import { UserRequestPayload } from '../auth/auth.interface';
 
 @Injectable()
 export class PaymentService extends BaseService {
@@ -34,7 +38,7 @@ export class PaymentService extends BaseService {
     });
   }
 
-  async create(dto: CreatePaymentDto) {
+  async create(dto: CreatePaymentDto): Promise<CreatePaymentResponseDto> {
     const { orderId } = dto;
 
     const order = await this.orderRepo.findOne({
@@ -95,13 +99,38 @@ export class PaymentService extends BaseService {
     const payment = this.paymentRepo.create({
       orderCode: `${orderCode}`,
       amount,
+      qrImageUrl: createPaymentLinkResponse.qrCode,
       paymentType: PaymentType.QR,
       status: PaymentStatus.PENDING,
       orderId: order.id,
     });
 
-    await this.paymentRepo.save(payment);
+    const createdPayment = await this.paymentRepo.save(payment);
 
-    return { checkoutUrl: createPaymentLinkResponse.checkoutUrl };
+    return plainToInstance(CreatePaymentResponseDto, createdPayment);
+  }
+
+  async checkPaymentStatus(
+    id: string,
+    user: UserRequestPayload,
+  ): Promise<CheckPaymentStatusResponseDto> {
+    const payment = await this.paymentRepo.findOne({
+      where: {
+        id,
+        order: {
+          userId: user.id,
+        },
+      },
+      relations: ['order'],
+    });
+
+    if (!payment) {
+      throw new ServerException({
+        ...ERROR_RESPONSE.NOT_FOUND,
+        message: 'Payment not found',
+      });
+    }
+
+    return plainToInstance(CheckPaymentStatusResponseDto, payment);
   }
 }

@@ -8,9 +8,12 @@ import {
 } from '@nestjs/swagger';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
-import { Request, Response } from 'express';
 import { Public } from 'src/decorators/public.decorator';
 import { CreatePaymentDto } from './dto/request/create-payment.dto';
+import { CreatePaymentResponseDto } from './dto/response/create-payment-response.dto';
+import { CheckPaymentStatusResponseDto } from './dto/response/check-payment-status-response.dto';
+import { User } from 'src/decorators/user.decorator';
+import { UserRequestPayload } from '../auth/auth.interface';
 
 @ApiTags('[USER] PAYMENT')
 @Public()
@@ -21,9 +24,21 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @ApiOperation({ summary: '[USER] CREATE PAYMENT' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: CreatePaymentResponseDto })
   @Post('')
-  async create(@Body() body: CreatePaymentDto) {
+  async create(
+    @Body() body: CreatePaymentDto,
+  ): Promise<CreatePaymentResponseDto> {
     return await this.paymentService.create(body);
+  }
+
+  @ApiOperation({ summary: '[USER] CHECK PAYMENT STATUS' })
+  @ApiResponse({ status: 200, type: CheckPaymentStatusResponseDto })
+  @Get(':id/status')
+  async checkPaymentStatus(
+    @Param('id') id: string,
+    @User('id') user: UserRequestPayload,
+  ): Promise<CheckPaymentStatusResponseDto> {
+    return await this.paymentService.checkPaymentStatus(id, user);
   }
 }

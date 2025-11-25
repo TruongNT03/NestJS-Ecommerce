@@ -4,6 +4,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
@@ -12,6 +13,7 @@ import { Address } from './address.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
 import { PaymentType } from 'src/common/enum/payment-type.enum';
+import { Payment } from './payment.entity';
 
 export const TableName = 'orders';
 
@@ -42,4 +44,7 @@ export class Order extends AbstractEntity<Order> {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
   orderItems: OrderItem[];
+
+  @OneToOne(() => Payment, (payment) => payment.order)
+  payment: Payment;
 }

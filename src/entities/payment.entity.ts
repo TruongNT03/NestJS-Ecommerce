@@ -1,7 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
 import { PaymentType } from 'src/common/enum/payment-type.enum';
 import { PaymentStatus } from 'src/common/enum/payment-status.enum';
+import { Order } from './order.entity';
 
 export const TableName = 'payments';
 
@@ -17,6 +24,9 @@ export class Payment extends AbstractEntity<Payment> {
   paymentType: PaymentType;
 
   @Column()
+  qrImageUrl: string;
+
+  @Column()
   amount: number;
 
   @Column({ default: 'VND' })
@@ -27,4 +37,8 @@ export class Payment extends AbstractEntity<Payment> {
 
   @Column()
   orderCode: string;
+
+  @OneToOne(() => Order, (order) => order.payment)
+  @JoinColumn({ name: 'order_id', referencedColumnName: 'id' })
+  order: Order;
 }

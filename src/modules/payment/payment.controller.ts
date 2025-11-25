@@ -16,7 +16,6 @@ import { User } from 'src/decorators/user.decorator';
 import { UserRequestPayload } from '../auth/auth.interface';
 
 @ApiTags('[USER] PAYMENT')
-@Public()
 @ApiBearerAuth()
 @Role([RoleType.USER])
 @Controller('payment')

@@ -114,6 +114,7 @@ export class PaymentService extends BaseService {
     id: string,
     user: UserRequestPayload,
   ): Promise<CheckPaymentStatusResponseDto> {
+    console.log(user);
     const payment = await this.paymentRepo.findOne({
       where: {
         id,

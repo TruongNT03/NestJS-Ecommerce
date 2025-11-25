@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { ProductImageDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-image-detail-response.dto';
-import { ProductVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/product-response.dto';
+
+import { ProductVariantResponseDto } from './product-variant-response.dto';
 
 @Exclude()
-export class UserProductDetailResponseDto {
+export class ProductDetailResponseDto {
   @Expose()
   @ApiProperty({ type: String })
   id: string;

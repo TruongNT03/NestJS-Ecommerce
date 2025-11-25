@@ -24,7 +24,7 @@ import {
   ListProductQueryDto,
 } from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
 import { ListProductResponseDto } from 'src/modules/admin/admin-product/dto/response/list-product-response.dto';
-import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
+import { AdminProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
 import { UpdateProductStatusDto } from './dto/request/update-product-status.dto';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -215,7 +215,6 @@ export class AdminProductService extends BaseService {
     } else {
       queryBuilder.orderBy('p.createdAt', 'DESC');
     }
-
     return queryBuilder;
   }
 
@@ -248,7 +247,7 @@ export class AdminProductService extends BaseService {
     });
   }
 
-  async findOne(id: string): Promise<ProductDetailResponseDto> {
+  async findOne(id: string): Promise<AdminProductDetailResponseDto> {
     const queryBuilder = this.productRepo
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.categories', 'pc')
@@ -259,7 +258,7 @@ export class AdminProductService extends BaseService {
       .where('p.id = :id', { id });
 
     const product = await queryBuilder.getOne();
-    return plainToInstance(ProductDetailResponseDto, product);
+    return plainToInstance(AdminProductDetailResponseDto, product);
   }
 
   private async checkExistProductName(name: string): Promise<boolean> {

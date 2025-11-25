@@ -12,7 +12,7 @@ import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { BaseService } from 'src/base.service';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
-import { UserProductDetailResponseDto } from './dto/response/user-product-detail-response.dto';
+import { ProductDetailResponseDto } from './dto/response/product-detail-response.dto';
 import { ProductVariantValueResponseDto } from './dto/response/product-variant-value.response.dto';
 
 @Injectable()
@@ -109,7 +109,7 @@ export class ProductService extends BaseService {
     });
   }
 
-  async findOne(id: string): Promise<UserProductDetailResponseDto> {
+  async findOne(id: string): Promise<ProductDetailResponseDto> {
     const product = this.productRepo.findOneBy({ id });
     if (!product) {
       throw new ServerException(ERROR_RESPONSE.NOT_FOUND);
@@ -120,7 +120,7 @@ export class ProductService extends BaseService {
       .map((productVariant) => productVariant.stock)
       .reduce((sum, value) => (sum += value));
 
-    return plainToInstance(UserProductDetailResponseDto, {
+    return plainToInstance(ProductDetailResponseDto, {
       ...data,
       totalStock,
     });

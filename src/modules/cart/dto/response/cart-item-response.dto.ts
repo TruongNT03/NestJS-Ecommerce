@@ -6,9 +6,10 @@ import {
   Transform,
   Type,
 } from 'class-transformer';
-import { ProductVariantResponseDto } from 'src/modules/admin/admin-product/dto/response/product-response.dto';
-import { UserProductResponseDto } from 'src/modules/product/dto/response/user-product-response.dto';
+
+import { ProductResponseDto } from 'src/modules/product/dto/response/product-response.dto';
 import { ProductSummaryResponseDto } from 'src/modules/product/dto/response/product-summary-response.dto';
+import { ProductVariantResponseDto } from 'src/modules/product/dto/response/product-variant-response.dto';
 
 @Exclude()
 export class CartItemResponseDto {
@@ -17,7 +18,7 @@ export class CartItemResponseDto {
   id: string;
 
   @Expose()
-  @ApiProperty({ type: UserProductResponseDto })
+  @ApiProperty({ type: ProductResponseDto })
   @Transform(({ obj }) =>
     plainToInstance(ProductSummaryResponseDto, obj?.productVariant?.product),
   )

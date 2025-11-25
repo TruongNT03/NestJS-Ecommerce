@@ -15,6 +15,15 @@ import { ProductVariant } from 'src/entities/product-variant.entity';
 import { CartItem } from 'src/entities/cart-item.entity';
 import { OrderItem } from 'src/entities/order-item.entity';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
+import { ListOrderResponseDto } from './dto/response/list-oder-response.dto';
+import { ListOrderQueryDto } from './dto/request/list-order-query.dto';
+import { plainToInstance } from 'class-transformer';
+import { OrderResponseDto } from './dto/response/order-response.dto';
+import { AddressResponseDto } from '../address/dto/response/address-response.dto';
+import {
+  OrderItemProductResponseDto,
+  OrderItemResponseDto,
+} from './dto/response/order-item-response.dto';
 
 @Injectable()
 export class OrderService extends BaseService {
@@ -159,5 +168,56 @@ export class OrderService extends BaseService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async getAllOrder(
+    user: UserRequestPayload,
+    query: ListOrderQueryDto,
+  ): Promise<ListOrderResponseDto> {
+    const userId = user.id;
+    const { page, pageSize } = query;
+
+    const queryBuilder = this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.address', 'address')
+      .leftJoinAndSelect('order.orderItems', 'orderItems')
+      .leftJoinAndSelect('orderItems.productVariant', 'productVariant')
+      .leftJoinAndSelect('productVariant.variantValues', 'variantValues')
+      .leftJoinAndSelect('variantValues.variant', 'variant')
+      .leftJoinAndSelect('productVariant.product', 'product')
+      .leftJoinAndSelect('product.productImages', 'productImages')
+      .where('order.userId = :userId', { userId });
+
+    const { data, paginate } = await this.paginate(
+      queryBuilder,
+      page,
+      pageSize,
+    );
+
+    return plainToInstance(ListOrderResponseDto, {
+      data: data.map((order) =>
+        plainToInstance(OrderResponseDto, {
+          id: order.id,
+          address: plainToInstance(AddressResponseDto, order.address),
+          status: order.status,
+          orderItems: order.orderItems.map((orderItem) =>
+            plainToInstance(OrderItemResponseDto, {
+              ...orderItem,
+              product: plainToInstance(
+                OrderItemProductResponseDto,
+                orderItem.productVariant.product,
+              ),
+            }),
+          ),
+          amount: order.orderItems.reduce(
+            (prev, current) =>
+              (prev = current.quantity * current.productVariant.price),
+            0,
+          ),
+          createdAt: order.createdAt,
+        }),
+      ),
+      paginate,
+    });
   }
 }

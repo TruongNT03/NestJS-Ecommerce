@@ -6,7 +6,7 @@ import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { ProductImageDetailResponseDto } from './product-image-detail-response.dto';
 
 @Exclude()
-export class ProductDetailResponseDto {
+export class AdminProductDetailResponseDto {
   @Expose()
   @ApiProperty({
     type: String,

@@ -27,7 +27,7 @@ import { ListVariantValueResponseDto } from 'src/modules/admin/admin-product/dto
 import { VariantValueQueryDto } from 'src/modules/admin/admin-product/dto/request/variant-value-query.dto';
 import { ListProductResponseDto } from 'src/modules/admin/admin-product/dto/response/list-product-response.dto';
 import { ListProductQueryDto } from 'src/modules/admin/admin-product/dto/request/list-product-query.dto';
-import { ProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
+import { AdminProductDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-detail-response.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
 import { UpdateProductStatusDto } from './dto/request/update-product-status.dto';
 import { SaveUuidResponseDto } from 'src/common/dto/save-response.dto';
@@ -58,9 +58,11 @@ export class AdminProductController {
   }
 
   @ApiOperation({ summary: '[ADMIN] FIND ONE PRODUCT BY ID' })
-  @ApiResponse({ status: 200, type: ProductDetailResponseDto })
+  @ApiResponse({ status: 200, type: AdminProductDetailResponseDto })
   @Get('/:id')
-  async findOne(@Param('id') id: string): Promise<ProductDetailResponseDto> {
+  async findOne(
+    @Param('id') id: string,
+  ): Promise<AdminProductDetailResponseDto> {
     return await this.adminProductService.findOne(id);
   }
 

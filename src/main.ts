@@ -1,10 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { getWinstonConfig } from './common/utils/logger-transport.util';
-import chalk from 'chalk';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -33,10 +32,12 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('swagger', app, documentFactory);
-
-  await app.listen(PORT, () => {
-    console.log(chalk.green(`Server listen on PORT: ${PORT}`));
+  SwaggerModule.setup('swagger', app, documentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
   });
+
+  await app.listen(PORT);
 }
 bootstrap();

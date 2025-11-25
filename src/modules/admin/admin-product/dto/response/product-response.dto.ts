@@ -1,11 +1,21 @@
-import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import {
+  Exclude,
+  Expose,
+  plainToInstance,
+  Transform,
+  Type,
+} from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
+import { Variant } from 'src/entities/variant.entity';
 
 @Exclude()
 export class VariantValuesResponseDto {
   @Expose()
   @ApiProperty({ type: String, example: 'Size' })
+  @Transform(({ value }: { value: Variant }) =>
+    value.name ? value.name : value,
+  )
   variant: string;
 
   @Expose()
@@ -14,12 +24,9 @@ export class VariantValuesResponseDto {
 }
 
 @Exclude()
-export class ProductVariantResponseDto {
+export class AdminProductVariantResponseDto {
   @Expose()
-  @ApiProperty({
-    type: String,
-    example: '377a5d99-ee6d-4e6f-9197-713e0699ac93',
-  })
+  @ApiProperty({ type: String })
   id: string;
 
   @Expose()
@@ -36,22 +43,14 @@ export class ProductVariantResponseDto {
 
   @Expose()
   @ApiProperty({ type: [VariantValuesResponseDto] })
-  @Transform(({ value }) =>
-    value.map((v) => ({
-      variant: v.variant.name,
-      value: v.value,
-    })),
-  )
+  @Type(() => VariantValuesResponseDto)
   variantValues: VariantValuesResponseDto[];
 }
 
 @Exclude()
-export class ProductResponseDto {
+export class AdminProductResponseDto {
   @Expose()
-  @ApiProperty({
-    type: String,
-    example: '377a5d99-ee6d-4e6f-9197-713e0699ac93',
-  })
+  @ApiProperty({ type: String })
   id: string;
 
   @Expose()
@@ -71,9 +70,9 @@ export class ProductResponseDto {
   hasVariant: boolean;
 
   @Expose()
-  @ApiProperty({ type: [ProductVariantResponseDto] })
-  @Type(() => ProductVariantResponseDto)
-  productVariants: ProductVariantResponseDto[];
+  @ApiProperty({ type: [AdminProductVariantResponseDto] })
+  @Type(() => AdminProductVariantResponseDto)
+  productVariants: AdminProductVariantResponseDto[];
 
   @Expose()
   @ApiProperty({ type: [String], example: ['https://example.com'] })

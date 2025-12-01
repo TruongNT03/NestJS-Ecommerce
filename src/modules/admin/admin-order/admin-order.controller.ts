@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common';
 import { AdminOrderService } from './admin-order.service';
 import {
   ApiBearerAuth,
@@ -10,6 +10,9 @@ import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { AdminListOrderQueryDto } from './dto/request/admin-list-order-query.dto';
 import { AdminListOrderResponseDto } from './dto/response/admin-list-order-response.dto';
+import { AdminOrderDetailResponseDto } from './dto/response/admin-order-detail-response.dto';
+import { AdminUpdateOrderStatusDto } from './dto/request/admin-update-order-status.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 
 @ApiTags('[ADMIN] ORDER')
 @ApiBearerAuth()
@@ -25,5 +28,22 @@ export class AdminOrderController {
     @Query() query: AdminListOrderQueryDto,
   ): Promise<AdminListOrderResponseDto> {
     return await this.adminOrderService.findAll(query);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] FIND ONE ORDER BY ID' })
+  @ApiResponse({ status: 200, type: AdminOrderDetailResponseDto })
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<AdminOrderDetailResponseDto> {
+    return await this.adminOrderService.findOne(id);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] UPDATE ORDER STATUS' })
+  @ApiResponse({ status: 200 })
+  @Put(':id')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Body() body: AdminUpdateOrderStatusDto,
+  ): Promise<SuccessResponseDto> {
+    return await this.adminOrderService.updateOrderStatus(id, body);
   }
 }

@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
 import { UserEntity } from 'src/entities/user.entity';
 import { ChatQueueModule } from '../shared/queue/chat/chat-queue.module';
+import { NotificationController } from './notification.controller';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ChatQueueModule } from '../shared/queue/chat/chat-queue.module';
     UserModule,
     ChatQueueModule,
   ],
+  controllers: [NotificationController],
   providers: [NotificationGateway, NotificationService, JwtService],
   exports: [NotificationService],
 })

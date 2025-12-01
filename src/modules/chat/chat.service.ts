@@ -23,6 +23,7 @@ import { NotificationService } from '../notification/notification.service';
 import { RoleType } from 'src/common/enum/role.enum';
 import { ListMessageQueryDto } from 'src/modules/chat/dto/request/list-message-query.dto';
 import { ListMessageResponseDto } from 'src/modules/chat/dto/response/list-message-response.dto';
+import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
 
 @Injectable()
 export class ChatService extends BaseService {
@@ -203,7 +204,7 @@ export class ChatService extends BaseService {
       userConversations.map((userConversation) => ({
         alertTo: RoleType.ADMIN,
         content: `Bạn có tin nhắn mới.`,
-        navigateTo: `/conversation/${conversationId}`,
+        navigateTo: NotificationNavigateTo.CONVERSATION_DETAIL,
         title: `Tin nhắn mới.`,
         triggerBy: `ChatService.createMessage`,
         userId: userConversation.userId,

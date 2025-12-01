@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserListResponseDto } from './response/list-user-response.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
-import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import {
   AdminUserQueryDto,
   AdminUserQuerySortField,
@@ -32,11 +32,27 @@ export class AdminUserService extends BaseService {
       .leftJoinAndSelect('u.roles', 'ur');
 
     if (search) {
-      queryBuilder.andWhere(new Brackets((qb) => qb.andWhere('u.email')));
+      queryBuilder.where(
+        new Brackets((qb) =>
+          qb
+            .where('LOWER(u.email) LIKE :search', {
+              search: `%${search.toLowerCase()}%`,
+            })
+            .orWhere('LOWER(u.phoneNumber) LIKE :search', {
+              search: `%${search.toLowerCase()}%`,
+            })
+            .orWhere('LOWER(u.name) LIKE :search', {
+              search: `%${search.toLowerCase()}%`,
+            }),
+        ),
+      );
     }
 
     const sortByFieldMap: Record<AdminUserQuerySortField, string> = {
+      [AdminUserQuerySortField.NAME]: 'u.name',
       [AdminUserQuerySortField.EMAIL]: 'u.email',
+      [AdminUserQuerySortField.GENDER]: 'u.gender',
+      [AdminUserQuerySortField.PHONE]: 'u.phoneNumber',
       [AdminUserQuerySortField.CREATED_AT]: 'u.createdAt',
     };
 
@@ -55,7 +71,12 @@ export class AdminUserService extends BaseService {
     );
 
     return plainToInstance(UserListResponseDto, {
-      data: plainToInstance(UserResponseDto, data),
+      data: data.map((user) =>
+        plainToInstance(UserResponseDto, {
+          ...user,
+          roles: user.roles.map((role) => role.name),
+        }),
+      ),
       paginate,
     });
   }

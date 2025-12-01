@@ -1,6 +1,6 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { CategoryResponseDto } from 'src/modules/admin/admin-categories/dto/response/category-response.dto';
+import { CategoryResponseDto } from 'src/modules/categories/dto/response/category-response.dto';
 import { ProductDetailVariantResponseDto } from './produt-detail-variant-response.dto';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { ProductImageDetailResponseDto } from './product-image-detail-response.dto';

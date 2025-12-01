@@ -14,6 +14,7 @@ import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
 import { ProductDetailResponseDto } from './dto/response/product-detail-response.dto';
 import { ProductVariantValueResponseDto } from './dto/response/product-variant-value.response.dto';
+import { ProductResponseDto } from './dto/response/product-response.dto';
 
 @Injectable()
 export class ProductService extends BaseService {
@@ -104,7 +105,12 @@ export class ProductService extends BaseService {
     );
 
     return plainToInstance(ListUserProductResponseDto, {
-      data,
+      data: data.map((item) => ({
+        ...item,
+        price: item.productVariants.length
+          ? Math.min(...item.productVariants.map((variant) => variant.price))
+          : 0,
+      })),
       paginate,
     });
   }

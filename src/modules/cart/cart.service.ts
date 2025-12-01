@@ -58,9 +58,12 @@ export class CartService extends BaseService {
   }
 
   private async findOrCreateCart(userId: string): Promise<Cart> {
-    const cart = await this.cartRepo.save({
-      userId,
-    });
+    let cart = await this.cartRepo.findOne({ where: { userId } });
+    if (!cart) {
+      cart = await this.cartRepo.save({
+        userId,
+      });
+    }
     return cart;
   }
 

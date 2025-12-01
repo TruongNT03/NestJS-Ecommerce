@@ -31,6 +31,7 @@ import { PaymentWebhookModule } from './modules/webhooks/payment/payment-webhook
 import { getWinstonConfig } from './common/utils/logger-transport.util';
 import { AdminChatModule } from './modules/admin/admin-chat/admin-chat.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -66,7 +67,6 @@ import { AdminModule } from 'src/modules/admin/admin.module';
     MailModule,
     S3Module,
     NotificationModule,
-
     ChatModule,
     ChatQueueModule,
     OnlineUserModule,
@@ -76,6 +76,7 @@ import { AdminModule } from 'src/modules/admin/admin.module';
     AddressModule,
     PaymentModule,
     PaymentWebhookModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [
@@ -93,4 +94,4 @@ import { AdminModule } from 'src/modules/admin/admin.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

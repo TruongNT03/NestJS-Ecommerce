@@ -3,7 +3,10 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { QueryDto, SortOrder } from 'src/common/dto/query.dto';
 
 export enum AdminUserQuerySortField {
+  NAME = 'name',
   EMAIL = 'email',
+  PHONE = 'phoneNumber',
+  GENDER = 'gender',
   CREATED_AT = 'createdAt',
 }
 

@@ -10,8 +10,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { ListCategoryResponseDto } from './dto/response/list-category-response.dto';
-import { ListCategoryQueryDto } from './dto/resquest/list-category-query.dto';
+import { ListCategoryResponseDto } from '../../categories/dto/response/list-category-response.dto';
+import { ListCategoryQueryDto } from '../../categories/dto/request/list-category-query.dto';
 import { UploadResponseDto } from 'src/common/dto/upload-response.dto';
 import { UploadDto } from 'src/common/dto/upload.dto';
 

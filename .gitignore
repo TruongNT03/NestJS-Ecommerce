@@ -59,3 +59,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Chatbot service model files
+/chatbot-service/models
+/chatbot-service/__pycache__

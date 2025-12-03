@@ -8,6 +8,7 @@ import { databaseConfig } from 'src/config/database.config';
 import { CreateVariantCommand } from './create-variant.command';
 import { CreateCategoryCommand } from './create-category.command';
 import { CreateProductCommand } from './create-product.command';
+import { CreateFaqCommand } from './create-faq.command';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CreateProductCommand } from './create-product.command';
     CreateVariantCommand,
     CreateCategoryCommand,
     CreateProductCommand,
+    CreateFaqCommand,
   ],
 })
 export class CommandModule {}

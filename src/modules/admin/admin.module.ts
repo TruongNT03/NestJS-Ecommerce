@@ -4,6 +4,7 @@ import { AdminProductModule } from 'src/modules/admin/admin-product/admin-produc
 import { AdminCategoriesModule } from 'src/modules/admin/admin-categories/admin-categories.module';
 import { AdminChatModule } from 'src/modules/admin/admin-chat/admin-chat.module';
 import { AdminOrderModule } from './admin-order/admin-order.module';
+import { AdminChatbotModule } from './admin-chatbot/admin-chatbot.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AdminOrderModule } from './admin-order/admin-order.module';
     AdminProductModule,
     AdminChatModule,
     AdminOrderModule,
+    AdminChatbotModule,
   ],
 })
 export class AdminModule {}

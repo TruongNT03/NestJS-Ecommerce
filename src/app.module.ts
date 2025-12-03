@@ -32,6 +32,7 @@ import { getWinstonConfig } from './common/utils/logger-transport.util';
 import { AdminChatModule } from './modules/admin/admin-chat/admin-chat.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
     PaymentModule,
     PaymentWebhookModule,
     CategoriesModule,
+    ChatbotModule,
   ],
   controllers: [],
   providers: [

@@ -73,6 +73,23 @@ services:
     networks:
       - web
 
+  chatbot:
+    build:
+      context: ./chatbot-service
+      dockerfile: Dockerfile
+    container_name: chatbot_service
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - '8081:8081'
+    volumes:
+      - ./chatbot-service/models:/app/models
+    depends_on:
+      - database
+    networks:
+      - web
+
 networks:
   web:
     driver: bridge

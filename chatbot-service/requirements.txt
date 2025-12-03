@@ -1,0 +1,10 @@
+pandas
+scikit-learn
+joblib
+numpy
+fastapi
+uvicorn
+psycopg2-binary
+python-dotenv
+sqlalchemy 
+uuid

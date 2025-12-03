@@ -3,6 +3,7 @@ export const commandConstants = {
   createVariant: 'create-variant',
   createCategory: 'create-category',
   createProduct: 'create-product',
+  createFaq: 'create-faq',
 };
 
 export const questionConstants = {

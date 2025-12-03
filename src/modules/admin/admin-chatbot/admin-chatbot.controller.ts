@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { AdminChatbotService } from './admin-chatbot.service';
 import {
   ApiBearerAuth,
@@ -12,6 +20,7 @@ import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { CreateFaqDto } from './dto/request/create-faq.dto';
 import { AdminListFaqResponseDto } from './dto/response/admin-list-faq-response.dto';
 import { AdminListFaqQueryDto } from './dto/request/list-faq-query.dto';
+import { AdminFaqSummaryResponseDto } from './dto/response/admin-faq-summary-response.dto';
 
 @ApiTags('[ADMIN] CHATBOT')
 @ApiBearerAuth()
@@ -41,5 +50,29 @@ export class AdminChatbotController {
   @Post('retraining')
   async retraining(): Promise<SuccessResponseDto> {
     return await this.adminChatbotService.retraining();
+  }
+
+  @ApiOperation({ summary: '[ADMIN] DELETE FAQ' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
+  @Delete(':id')
+  async delete(@Query('id') id: number): Promise<SuccessResponseDto> {
+    return await this.adminChatbotService.delete(id);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] UPDATE FAQ' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
+  @Put(':id')
+  async update(
+    @Query('id') id: number,
+    @Body() body: CreateFaqDto,
+  ): Promise<SuccessResponseDto> {
+    return await this.adminChatbotService.update(id, body);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] GET FAQ SUMMARY' })
+  @ApiResponse({ status: 200, type: AdminFaqSummaryResponseDto })
+  @Get('summary')
+  async getSummary(): Promise<AdminFaqSummaryResponseDto> {
+    return await this.adminChatbotService.getSummary();
   }
 }

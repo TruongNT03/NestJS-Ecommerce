@@ -16,12 +16,17 @@ import { ConfigType } from '@nestjs/config';
 import axios from 'axios';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
+import { AdminFaqSummaryResponseDto } from './dto/response/admin-faq-summary-response.dto';
+import { ChatBotTrainingLog } from 'src/entities/chatbot-training-log.entity';
+import { ChatbotTrainingStatus } from 'src/common/enum/chatbot-training-status.enum';
 
 @Injectable()
 export class AdminChatbotService extends BaseService {
   constructor(
     @InjectRepository(ChatbotData)
     private readonly chatbotDataRepo: Repository<ChatbotData>,
+    @InjectRepository(ChatBotTrainingLog)
+    private readonly chatbotTrainingLogRepo: Repository<ChatBotTrainingLog>,
     @Inject(chatbotServiceConfiguration.KEY)
     private readonly chatbotServiceConfig: ConfigType<
       typeof chatbotServiceConfiguration
@@ -98,7 +103,7 @@ export class AdminChatbotService extends BaseService {
     });
   }
 
-  async retraining() {
+  async retraining(): Promise<SuccessResponseDto> {
     try {
       const response = (
         await axios.post(
@@ -106,13 +111,48 @@ export class AdminChatbotService extends BaseService {
         )
       ).data;
 
+      await this.chatbotTrainingLogRepo.save({
+        status: ChatbotTrainingStatus.SUCCESS,
+      });
+
       return this.successResponse();
     } catch (error) {
-      console.log(error);
+      await this.chatbotTrainingLogRepo.save({
+        status: ChatbotTrainingStatus.FAIL,
+      });
       throw new ServerException({
         ...ERROR_RESPONSE.BAD_REQUEST,
         message: error?.response?.data?.message,
       });
     }
+  }
+
+  async delete(id: number): Promise<SuccessResponseDto> {
+    await this.chatbotDataRepo.delete(id);
+    return this.successResponse();
+  }
+
+  async update(id: number, dto: CreateFaqDto): Promise<SuccessResponseDto> {
+    await this.chatbotDataRepo.update(id, dto);
+    return this.successResponse();
+  }
+
+  async getSummary(): Promise<AdminFaqSummaryResponseDto> {
+    const totalFaqs = await this.chatbotDataRepo.count();
+    const totalFaqCategories = await this.chatbotDataRepo
+      .createQueryBuilder('chatbot')
+      .select('COUNT(DISTINCT chatbot.type)', 'count')
+      .getRawOne();
+
+    const latestTraining = await this.chatbotTrainingLogRepo.findOne({
+      where: {},
+      order: { createdAt: 'DESC' },
+    });
+
+    return plainToInstance(AdminFaqSummaryResponseDto, {
+      totalFaqs,
+      totalFaqCategories: totalFaqCategories.count,
+      latestTraining,
+    });
   }
 }

@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.9'
 
 services:
   database:
@@ -12,10 +12,35 @@ services:
       - 5433:5432
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - web
   redis:
     image: redis:8.0-rc1-alpine
     container_name: redis
     ports:
       - 6378:6379
+    networks:
+      - web
+  chatbot:
+    build:
+      context: ./chatbot-service
+      dockerfile: Dockerfile
+    container_name: chatbot_service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '8081:8081'
+    volumes:
+      - ./chatbot-service/models:/app/models
+    depends_on:
+      - database
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
 volumes:
   postgres_data:

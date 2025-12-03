@@ -35,7 +35,6 @@ export class ChatbotService extends BaseService {
         )
       ).data;
 
-      console.log(response);
       return plainToInstance(AskResponseDto, {
         answer: response.answer,
       });

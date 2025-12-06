@@ -19,6 +19,9 @@ import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
 import { AdminFaqSummaryResponseDto } from './dto/response/admin-faq-summary-response.dto';
 import { ChatBotTrainingLog } from 'src/entities/chatbot-training-log.entity';
 import { ChatbotTrainingStatus } from 'src/common/enum/chatbot-training-status.enum';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
+import { ChatbotServiceResponseDto } from './dto/response/chatbot-service-response.dto';
 
 @Injectable()
 export class AdminChatbotService extends BaseService {
@@ -31,6 +34,8 @@ export class AdminChatbotService extends BaseService {
     private readonly chatbotServiceConfig: ConfigType<
       typeof chatbotServiceConfiguration
     >,
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
   ) {
     super();
   }
@@ -106,13 +111,17 @@ export class AdminChatbotService extends BaseService {
   async retraining(): Promise<SuccessResponseDto> {
     try {
       const response = (
-        await axios.post(
+        await axios.post<ChatbotServiceResponseDto>(
           `${this.chatbotServiceConfig.host}:${this.chatbotServiceConfig.port}/retrain`,
         )
       ).data;
 
       await this.chatbotTrainingLogRepo.save({
         status: ChatbotTrainingStatus.SUCCESS,
+        testQuestion: response.question,
+        testAnswer: response.answer,
+        testAccuracy: response.accuracy,
+        testAnswerFrom: response.answer_from,
       });
 
       return this.successResponse();
@@ -120,6 +129,12 @@ export class AdminChatbotService extends BaseService {
       await this.chatbotTrainingLogRepo.save({
         status: ChatbotTrainingStatus.FAIL,
       });
+
+      this.logger.error('Fail to retraining chatbot', {
+        context: 'AdminChatbotService.retraining',
+        error,
+      });
+
       throw new ServerException({
         ...ERROR_RESPONSE.BAD_REQUEST,
         message: error?.response?.data?.message,

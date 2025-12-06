@@ -1,28 +1,42 @@
 from fastapi import FastAPI, Request
-from os import getenv
 from dotenv import load_dotenv
 import joblib
-from sklearn.metrics.pairwise import cosine_similarity
+from training import answer_question
+from colorama import Fore, Back, Style, init
+from training import retrain as retraining
 
 load_dotenv()
+init(autoreset=True)
 
-MODEL_FILE = getenv("MODEL_FILE", "models/faq_model.pkl")
+MODEL_DIR = "models"
+VEC_PATH = f"{MODEL_DIR}/faq_vectorizer.pkl"
+MAT_PATH = f"{MODEL_DIR}/faq_matrix.pkl"
+DATA_PATH = f"{MODEL_DIR}/faq_data.pkl"
 
 app = FastAPI()
 
 # -------------------------------------
-# Load ML Model (TF-IDF + dataset)
+# Load Model
 # -------------------------------------
-model_data = None  # sẽ là tuple (df, vectorizer, X_tfidf)
+faq_data = None  
+faq_matrix = None  
+faq_vectorizer = None  
 
 def load_model():
-    global model_data
+    global faq_data
+    global faq_matrix
+    global faq_vectorizer
     try:
-        model_data = joblib.load(MODEL_FILE)
-        print("ML model loaded successfully!")
+        faq_data = joblib.load(VEC_PATH)
+        faq_matrix = joblib.load(MAT_PATH)
+        faq_vectorizer = joblib.load(DATA_PATH)
+        print(f"{Fore.GREEN}INFO:     {Fore.CYAN}ML model loaded successfully!")
     except Exception as e:
-        print("Could not load model:", e)
-        model_data = None
+        print(f"{Fore.RED}ERROR:    Could not load model.", e)
+        faq_data = None  
+        faq_matrix = None  
+        faq_vectorizer = None  
+
 
 load_model()
 
@@ -32,8 +46,10 @@ load_model()
 @app.get("/health")
 def health():
     return {
-        "model_file": MODEL_FILE,
-        "status": "healthy" if model_data else "not loaded"
+        "faq_data_file": VEC_PATH,
+        "faq_matrix_file": MAT_PATH,
+        "faq_vectorizer_file": DATA_PATH,
+        "status": "healthy" if faq_data and faq_matrix and faq_vectorizer else "not loaded"
     }
 
 # -------------------------------------
@@ -44,30 +60,22 @@ async def ask(request: Request):
     payload = await request.json()
 
     question = payload.get("data", "").get("question", "").strip()
+    print(f"{Fore.GREEN}INFO{Style.RESET_ALL}:     Question from payload: {Fore.CYAN}{question}{Style.RESET_ALL}")
 
     if not question:
         return {"error": "Missing question"}
 
-    if model_data is None:
-        return {"error": "Model not loaded"}
+    answer = answer_question(question)
 
-    df, vectorizer, X_tfidf = model_data
-    q_vec = vectorizer.transform([question])
-    sims = cosine_similarity(q_vec, X_tfidf)
-    idx = sims.argmax()
-    answer = df.iloc[idx]["answer"]
-
-    return {"answer": answer}
+    return answer
 
 # -------------------------------------
 # Endpoint retrain
 # -------------------------------------
 @app.post("/retrain")
 def retrain():
-    import subprocess
     try:
-        subprocess.run(["python", "training.py"], check=True)
-        load_model()
-        return {"message": "Model retrained and reloaded!"}
+        answer = retraining()
+        return answer
     except Exception as e:
         return {"message": f"Fail to retrain model: {e}"}

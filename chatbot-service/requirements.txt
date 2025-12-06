@@ -8,3 +8,7 @@ psycopg2-binary
 python-dotenv
 sqlalchemy 
 uuid
+colorama
+underthesea
+python-Levenshtein
+fuzzywuzzy

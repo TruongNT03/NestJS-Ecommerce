@@ -11,4 +11,16 @@ export class ChatBotTrainingLog extends AbstractEntity {
 
   @Column()
   status: ChatbotTrainingStatus;
+
+  @Column()
+  testQuestion: string;
+
+  @Column()
+  testAnswer: string;
+
+  @Column()
+  testAccuracy: number;
+
+  @Column()
+  testAnswerFrom: string;
 }

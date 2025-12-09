@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 import joblib
 from training import answer_question
-from colorama import Fore, Back, Style, init
+from colorama import Fore, Style, init
 from training import retrain as retraining
 
 load_dotenv()

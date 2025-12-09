@@ -12,3 +12,4 @@ colorama
 underthesea
 python-Levenshtein
 pyvi
+fuzzywuzzy

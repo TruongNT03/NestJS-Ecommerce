@@ -11,4 +11,4 @@ uuid
 colorama
 underthesea
 python-Levenshtein
-fuzzywuzzy
+pyvi

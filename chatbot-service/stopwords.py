@@ -140,25 +140,3 @@ VIETNAMESE_STOPWORDS = [
     'một_cách', 'theo_cách', 'kiểu', 'kiểu_như',
     'loại', 'thứ', 'hạng', 'dạng', 'hình_thức',
 ]
-
-# Export as list for easier usage
-VIETNAMESE_STOPWORDS_LIST = sorted(list(VIETNAMESE_STOPWORDS))
-
-# Function to get stopwords
-def get_vietnamese_stopwords():
-    """
-    Trả về danh sách các stopwords tiếng Việt
-    
-    Returns:
-        set: Tập hợp các stopwords
-    """
-    return VIETNAMESE_STOPWORDS
-
-def get_vietnamese_stopwords_list():
-    """
-    Trả về danh sách các stopwords tiếng Việt dạng list đã sắp xếp
-    
-    Returns:
-        list: Danh sách các stopwords đã sắp xếp
-    """
-    return VIETNAMESE_STOPWORDS_LIST

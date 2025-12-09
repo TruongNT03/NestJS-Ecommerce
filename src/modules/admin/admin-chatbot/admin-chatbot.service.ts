@@ -22,6 +22,10 @@ import { ChatbotTrainingStatus } from 'src/common/enum/chatbot-training-status.e
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ChatbotServiceResponseDto } from './dto/response/chatbot-service-response.dto';
+import { Response } from 'express';
+import * as exceljs from 'exceljs';
+import { FaqType } from 'src/common/enum/faq-type.enum';
+import { FaqTemplateHeader } from 'src/common/enum/faq-template-header.enum';
 
 @Injectable()
 export class AdminChatbotService extends BaseService {
@@ -169,5 +173,101 @@ export class AdminChatbotService extends BaseService {
       totalFaqCategories: totalFaqCategories.count,
       latestTraining,
     });
+  }
+
+  async downloadTemplate(res: Response) {
+    const workbook = new exceljs.Workbook();
+    const sheet = workbook.addWorksheet('Sheet 1');
+    sheet.addRow([
+      FaqTemplateHeader.QUESTION,
+      FaqTemplateHeader.ANSWER,
+      FaqTemplateHeader.TYPE,
+    ]);
+
+    const headerRow = sheet.getRow(1);
+
+    headerRow.eachCell((cell) => {
+      cell.font = {
+        color: { argb: 'FFFFFFFF' },
+        bold: true,
+      };
+
+      cell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+      };
+
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '024e82' },
+      };
+    });
+
+    sheet.getColumn(1).width = 50;
+    sheet.getColumn(2).width = 50;
+    sheet.getColumn(3).width = 10;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    res.setHeader('Content-Disposition', 'attachment; filename=template.xlsx');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return res.send(buffer);
+  }
+
+  async uploadFaqFile(file: Express.Multer.File): Promise<SuccessResponseDto> {
+    const buffer = file.buffer as unknown as exceljs.Buffer;
+    const workbook = new exceljs.Workbook();
+    await workbook.xlsx.load(buffer);
+
+    const worksheet = workbook.getWorksheet(1);
+    const data: CreateFaqDto[] = [];
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) {
+        const question = row.getCell(1).value;
+        const answer = row.getCell(2).value;
+        const type = row.getCell(3).value;
+        if (
+          question !== FaqTemplateHeader.QUESTION ||
+          answer !== FaqTemplateHeader.ANSWER ||
+          type !== FaqTemplateHeader.TYPE
+        ) {
+          throw new ServerException({
+            ...ERROR_RESPONSE.BAD_REQUEST,
+            message: 'Please use correct template!',
+          });
+        }
+        return;
+      }
+
+      const question = row.getCell(1).value;
+      const answer = row.getCell(2).value;
+      const type = row.getCell(3).value;
+
+      if (question && answer && type) {
+        data.push({
+          question: question as string,
+          answer: answer as string,
+          type: type as FaqType,
+        });
+      }
+    });
+
+    await Promise.all(
+      data.map((faq) => {
+        this.chatbotDataRepo.save({
+          question: faq.question,
+          answer: faq.answer,
+          type: faq.type,
+        });
+      }),
+    );
+
+    return this.successResponse();
   }
 }

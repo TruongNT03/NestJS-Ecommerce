@@ -6,10 +6,15 @@ import {
   Post,
   Put,
   Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AdminChatbotService } from './admin-chatbot.service';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -21,6 +26,8 @@ import { CreateFaqDto } from './dto/request/create-faq.dto';
 import { AdminListFaqResponseDto } from './dto/response/admin-list-faq-response.dto';
 import { AdminListFaqQueryDto } from './dto/request/list-faq-query.dto';
 import { AdminFaqSummaryResponseDto } from './dto/response/admin-faq-summary-response.dto';
+import { Response, Express } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('[ADMIN] CHATBOT')
 @ApiBearerAuth()
@@ -74,5 +81,34 @@ export class AdminChatbotController {
   @Get('summary')
   async getSummary(): Promise<AdminFaqSummaryResponseDto> {
     return await this.adminChatbotService.getSummary();
+  }
+
+  @ApiOperation({ summary: '[ADMIN] DOWNLOAD EXCEL FILE TEMPLATE' })
+  @ApiResponse({ status: 200 })
+  @Get('download-template')
+  async downloadTemplate(@Res() res: Response) {
+    return await this.adminChatbotService.downloadTemplate(res);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] UPLOAD FAQ' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @Post('upload-faq')
+  async uploadFaqFile(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<SuccessResponseDto> {
+    return await this.adminChatbotService.uploadFaqFile(file);
   }
 }

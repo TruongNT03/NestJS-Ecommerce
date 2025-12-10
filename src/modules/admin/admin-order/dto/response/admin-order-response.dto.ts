@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
+import { PaymentStatus } from 'src/common/enum/payment-status.enum';
+import { PaymentType } from 'src/common/enum/payment-type.enum';
 
 @Exclude()
 export class AdminOrderResponseDto {
@@ -19,6 +21,14 @@ export class AdminOrderResponseDto {
   @Expose()
   @ApiProperty({ type: Number })
   amount: number;
+
+  @Expose()
+  @ApiProperty({ enum: PaymentType })
+  paymentMethod: PaymentType;
+
+  @Expose()
+  @ApiProperty({ enum: PaymentStatus })
+  paymentStatus: PaymentStatus;
 
   @Expose()
   @ApiProperty({ type: Date })

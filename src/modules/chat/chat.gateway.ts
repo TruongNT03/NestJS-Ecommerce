@@ -19,6 +19,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation } from 'src/entities/conversation.entity';
 import { Repository } from 'typeorm';
 import { OnlineUserService } from '../shared/online-user/online-user.service';
+import { MessageResponseDto } from './dto/response/message-response.dto';
 
 @WebSocketGateway({
   cors: {
@@ -132,7 +133,7 @@ export class ChatGateway
 
   async sendMessageToConversation(
     conversationId: string,
-    message: MessageEntity,
+    message: MessageResponseDto,
   ) {
     this.server
       .to(`conversation:${conversationId}`)

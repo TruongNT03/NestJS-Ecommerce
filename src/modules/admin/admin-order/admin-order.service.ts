@@ -19,6 +19,7 @@ import { NotificationService } from 'src/modules/notification/notification.servi
 import { parseOrderStatus } from 'src/common/utils/parse-order-status.util';
 import { UserRequestPayload } from 'src/modules/auth/auth.interface';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
+import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
 
 @Injectable()
 export class AdminOrderService extends BaseService {
@@ -124,6 +125,15 @@ export class AdminOrderService extends BaseService {
     );
     await this.notificationService.create(notification);
 
+    return this.successResponse();
+  }
+
+  async updatePaymentStatus(
+    id: string,
+    dto: AdminUpdateOrderPaymentStatusDto,
+  ): Promise<SuccessResponseDto> {
+    const { paymentStatus } = dto;
+    await this.orderRepo.update({ id }, { paymentStatus });
     return this.successResponse();
   }
 

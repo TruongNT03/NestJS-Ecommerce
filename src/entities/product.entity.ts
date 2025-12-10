@@ -11,6 +11,7 @@ import { Categories } from 'src/entities/categories.entity';
 import { ProductVariant } from 'src/entities/product-variant.entity';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { ProductImage } from './product-image.entity';
+import { Review } from './review.entity';
 
 export const TableName = 'products';
 
@@ -44,4 +45,7 @@ export class Product extends AbstractEntity<Product> {
 
   @OneToMany(() => ProductVariant, (productVariant) => productVariant.product)
   productVariants: ProductVariant[];
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews: Review[];
 }

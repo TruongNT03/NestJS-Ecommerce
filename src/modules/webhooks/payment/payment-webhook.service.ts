@@ -43,7 +43,7 @@ export class PaymentWebhookService extends BaseService {
         {
           orderCode: orderCode,
         },
-        { status: OrderStatus.SHIPPING },
+        { status: OrderStatus.SHIPPING, paymentStatus: PaymentStatus.SUCCESS },
       );
     }
     if (!success) {

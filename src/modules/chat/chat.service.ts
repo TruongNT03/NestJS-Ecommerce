@@ -24,6 +24,7 @@ import { RoleType } from 'src/common/enum/role.enum';
 import { ListMessageQueryDto } from 'src/modules/chat/dto/request/list-message-query.dto';
 import { ListMessageResponseDto } from 'src/modules/chat/dto/response/list-message-response.dto';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
+import { MessageResponseDto } from './dto/response/message-response.dto';
 
 @Injectable()
 export class ChatService extends BaseService {
@@ -110,7 +111,7 @@ export class ChatService extends BaseService {
       // Notification
       await this.chatGateway.sendMessageToConversation(
         conversation.id,
-        message,
+        plainToInstance(MessageResponseDto, message),
       );
 
       await queryRunner.commitTransaction();
@@ -171,12 +172,16 @@ export class ChatService extends BaseService {
   // Need implement more
   async createMessage(dto: CreateMessageDto, user: UserRequestPayload) {
     const { content, conversationId } = dto;
-    const message = await this.messageRepo.save({
+    const message: MessageEntity = await this.messageRepo.save({
       content,
       conversationId,
       senderId: user.id,
     });
-    await this.chatGateway.sendMessageToConversation(conversationId, message);
+
+    await this.chatGateway.sendMessageToConversation(
+      conversationId,
+      plainToInstance(MessageResponseDto, message),
+    );
     const newMessageNotifications = await this.getNewMessageNotification(
       user.id,
       conversationId,

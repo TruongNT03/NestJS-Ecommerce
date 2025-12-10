@@ -16,6 +16,7 @@ import { Cart } from 'src/entities/cart.entity';
 import { Address } from './address.entity';
 import { Order } from './order.entity';
 import { UserGender } from 'src/modules/auth/dto/request/update-profile.dto';
+import { Review } from './review.entity';
 
 export const TableName = 'users';
 
@@ -70,4 +71,7 @@ export class UserEntity extends AbstractEntity<UserEntity> {
 
   @OneToMany(() => Order, (order) => order.user)
   order: Order[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

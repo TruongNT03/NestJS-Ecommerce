@@ -67,4 +67,8 @@ export class OrderItemResponseDto {
   @Expose()
   @ApiProperty({ type: Number })
   quantity: number;
+
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isReviewed: boolean;
 }

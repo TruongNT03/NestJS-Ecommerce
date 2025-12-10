@@ -126,8 +126,15 @@ export class ProductService extends BaseService {
       .map((productVariant) => productVariant.stock)
       .reduce((sum, value) => (sum += value));
 
+    const rating = data.reviews.reduce(
+      (prev, currentValue) => (prev += currentValue.rating),
+      0,
+    );
+
     return plainToInstance(ProductDetailResponseDto, {
       ...data,
+      totalRating: data.reviews.length,
+      averageRating: rating / data.reviews.length,
       totalStock,
     });
   }
@@ -140,6 +147,7 @@ export class ProductService extends BaseService {
       .leftJoinAndSelect('p.categories', 'c')
       .leftJoinAndSelect('pv.variantValues', 'vv')
       .leftJoinAndSelect('vv.variant', 'v')
+      .leftJoinAndSelect('p.reviews', 'review')
       .where('p.id = :id', { id });
 
     return queryBuilder;

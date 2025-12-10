@@ -25,6 +25,9 @@ export class OrderItem {
   @Column()
   quantity: number;
 
+  @Column()
+  isReviewed: boolean;
+
   @ManyToOne(() => Order, (order) => order.orderItems)
   @JoinColumn({ name: 'order_id', referencedColumnName: 'id' })
   order: Order;

@@ -14,6 +14,7 @@ import { OrderItem } from './order-item.entity';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
 import { PaymentType } from 'src/common/enum/payment-type.enum';
 import { Payment } from './payment.entity';
+import { PaymentStatus } from 'src/common/enum/payment-status.enum';
 
 export const TableName = 'orders';
 
@@ -33,6 +34,12 @@ export class Order extends AbstractEntity<Order> {
 
   @Column()
   orderCode: string;
+
+  @Column()
+  paymentMethod: PaymentType;
+
+  @Column()
+  paymentStatus: PaymentStatus;
 
   @ManyToOne(() => UserEntity, (user) => user.order)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })

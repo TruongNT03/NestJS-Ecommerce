@@ -24,6 +24,8 @@ import {
   OrderItemProductResponseDto,
   OrderItemResponseDto,
 } from './dto/response/order-item-response.dto';
+import { PaymentStatus } from 'src/common/enum/payment-status.enum';
+import { PaymentType } from 'src/common/enum/payment-type.enum';
 
 @Injectable()
 export class OrderService extends BaseService {
@@ -115,7 +117,10 @@ export class OrderService extends BaseService {
           status: OrderStatus.PENDING,
           totalPrice,
           paymentType,
-          paymentStatus: false,
+          paymentStatus:
+            paymentType === PaymentType.COD
+              ? PaymentStatus.NOT_YET
+              : PaymentStatus.PENDING,
         },
         {},
       );

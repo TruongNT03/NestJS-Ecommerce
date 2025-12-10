@@ -13,6 +13,7 @@ import { AdminListOrderResponseDto } from './dto/response/admin-list-order-respo
 import { AdminOrderDetailResponseDto } from './dto/response/admin-order-detail-response.dto';
 import { AdminUpdateOrderStatusDto } from './dto/request/admin-update-order-status.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
+import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
 
 @ApiTags('[ADMIN] ORDER')
 @ApiBearerAuth()
@@ -39,11 +40,21 @@ export class AdminOrderController {
 
   @ApiOperation({ summary: '[ADMIN] UPDATE ORDER STATUS' })
   @ApiResponse({ status: 200 })
-  @Put(':id')
+  @Put(':id/status')
   async updateOrderStatus(
     @Param('id') id: string,
     @Body() body: AdminUpdateOrderStatusDto,
   ): Promise<SuccessResponseDto> {
     return await this.adminOrderService.updateOrderStatus(id, body);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] UPDATE PAYMENT STATUS' })
+  @ApiResponse({ status: 200 })
+  @Put(':id/payemnt-status')
+  async updatePaymentStatus(
+    @Param('id') id: string,
+    @Body() body: AdminUpdateOrderPaymentStatusDto,
+  ): Promise<SuccessResponseDto> {
+    return await this.adminOrderService.updatePaymentStatus(id, body);
   }
 }

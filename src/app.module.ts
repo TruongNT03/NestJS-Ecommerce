@@ -33,6 +33,7 @@ import { AdminChatModule } from './modules/admin/admin-chat/admin-chat.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module';
     PaymentWebhookModule,
     CategoriesModule,
     ChatbotModule,
+    ReviewModule,
   ],
   controllers: [],
   providers: [
@@ -96,4 +98,4 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

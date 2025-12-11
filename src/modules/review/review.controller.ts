@@ -14,6 +14,7 @@ import { User } from 'src/decorators/user.decorator';
 import { UserRequestPayload } from '../auth/auth.interface';
 import { ListReviewResponseDto } from './dto/response/list-review-response.dto';
 import { ListReviewQueryDto } from './dto/request/list-review-query.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @ApiTags('[USER] REVIEW')
 @Role([RoleType.USER])
@@ -41,7 +42,7 @@ export class ReviewController {
 
   @ApiOperation({ summary: '[USER/ADMIN] GET ALL REVIEW OF PRODUCT' })
   @ApiResponse({ status: 200, type: ListReviewResponseDto })
-  @Role([RoleType.ADMIN, RoleType.USER])
+  @Public()
   @Get(':productId')
   async findAllReviewOfProduct(
     @Param('productId') productId: string,

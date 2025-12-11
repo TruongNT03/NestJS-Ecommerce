@@ -106,13 +106,21 @@ export class ReviewService extends BaseService {
     productId: string,
     dto: ListReviewQueryDto,
   ): Promise<ListReviewResponseDto> {
-    const { page, pageSize } = dto;
+    const { page, pageSize, hasImages, rating } = dto;
 
     const queryBuilder = this.reviewRepo
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
       .where('review.productId = :productId', { productId })
       .orderBy('review.createdAt', 'DESC');
+
+    if (rating) {
+      queryBuilder.andWhere('review.rating = :rating', { rating });
+    }
+
+    if (hasImages === 'true') {
+      queryBuilder.andWhere('review.images IS NOT NULL');
+    }
 
     const { data, paginate } = await this.paginate(
       queryBuilder,

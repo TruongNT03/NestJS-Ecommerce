@@ -9,6 +9,10 @@ export class MessageResponseDto {
 
   @Expose()
   @ApiProperty({ type: String })
+  conversationId: string;
+
+  @Expose()
+  @ApiProperty({ type: String })
   content: string;
 
   @Expose()

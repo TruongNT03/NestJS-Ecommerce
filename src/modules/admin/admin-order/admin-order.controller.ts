@@ -14,6 +14,7 @@ import { AdminOrderDetailResponseDto } from './dto/response/admin-order-detail-r
 import { AdminUpdateOrderStatusDto } from './dto/request/admin-update-order-status.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
+import { AdminOrderStaticResponseDto } from './dto/response/admin-order-static-response.dto';
 
 @ApiTags('[ADMIN] ORDER')
 @ApiBearerAuth()
@@ -29,6 +30,13 @@ export class AdminOrderController {
     @Query() query: AdminListOrderQueryDto,
   ): Promise<AdminListOrderResponseDto> {
     return await this.adminOrderService.findAll(query);
+  }
+
+  @ApiOperation({ summary: '[ADMIN] ORDER STATIC' })
+  @ApiResponse({ status: 200, type: AdminOrderStaticResponseDto })
+  @Get('static')
+  async getOrderStatic(): Promise<AdminOrderStaticResponseDto> {
+    return await this.adminOrderService.getOrderStatic();
   }
 
   @ApiOperation({ summary: '[ADMIN] FIND ONE ORDER BY ID' })
@@ -50,7 +58,7 @@ export class AdminOrderController {
 
   @ApiOperation({ summary: '[ADMIN] UPDATE PAYMENT STATUS' })
   @ApiResponse({ status: 200 })
-  @Put(':id/payemnt-status')
+  @Put(':id/payment-status')
   async updatePaymentStatus(
     @Param('id') id: string,
     @Body() body: AdminUpdateOrderPaymentStatusDto,

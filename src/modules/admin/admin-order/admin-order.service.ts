@@ -20,6 +20,7 @@ import { parseOrderStatus } from 'src/common/utils/parse-order-status.util';
 import { UserRequestPayload } from 'src/modules/auth/auth.interface';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
 import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
+import { AdminOrderStaticResponseDto } from './dto/response/admin-order-static-response.dto';
 
 @Injectable()
 export class AdminOrderService extends BaseService {
@@ -33,7 +34,7 @@ export class AdminOrderService extends BaseService {
   async findAll(
     dto: AdminListOrderQueryDto,
   ): Promise<AdminListOrderResponseDto> {
-    const { page, pageSize, search } = dto;
+    const { page, pageSize, search, orderStatusFilter } = dto;
 
     const queryBuilder = this.orderRepo
       .createQueryBuilder('order')
@@ -49,6 +50,12 @@ export class AdminOrderService extends BaseService {
           }),
         ),
       );
+    }
+
+    if (orderStatusFilter) {
+      queryBuilder.andWhere('order.status = :status', {
+        status: orderStatusFilter,
+      });
     }
 
     const { data, paginate } = await this.paginate(
@@ -153,5 +160,22 @@ export class AdminOrderService extends BaseService {
       },
       userId,
     };
+  }
+
+  async getOrderStatic(): Promise<AdminOrderStaticResponseDto> {
+    return {
+      pending: await this.getCountOrderByStatus(OrderStatus.PENDING),
+      confirmed: await this.getCountOrderByStatus(OrderStatus.CONFIRMED),
+      shipping: await this.getCountOrderByStatus(OrderStatus.SHIPPING),
+      completed: await this.getCountOrderByStatus(OrderStatus.COMPLETED),
+    };
+  }
+
+  private async getCountOrderByStatus(status: OrderStatus): Promise<number> {
+    const queryBuilder = this.orderRepo
+      .createQueryBuilder('order')
+      .where('order.status = :status', { status });
+
+    return await queryBuilder.getCount();
   }
 }

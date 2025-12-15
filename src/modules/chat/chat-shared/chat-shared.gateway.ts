@@ -7,19 +7,18 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { UserRequestPayload } from '../auth/auth.interface';
-import { UserShareService } from '../user/user-share.service';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { jwtConfiguration } from 'src/config';
 import { RoleType } from 'src/common/enum/role.enum';
-import { MessageEntity } from 'src/entities/message.entity';
-import { CONSTANTS } from './chat.constant';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation } from 'src/entities/conversation.entity';
 import { Repository } from 'typeorm';
-import { OnlineUserService } from '../shared/online-user/online-user.service';
-import { MessageResponseDto } from './dto/response/message-response.dto';
+import { UserShareService } from 'src/modules/user/user-share.service';
+import { OnlineUserService } from 'src/modules/shared/online-user/online-user.service';
+import { UserRequestPayload } from 'src/modules/auth/auth.interface';
+import { MessageResponseDto } from '../dto/response/message-response.dto';
+import { CONSTANTS } from '../chat.constant';
 
 @WebSocketGateway({
   cors: {
@@ -27,9 +26,7 @@ import { MessageResponseDto } from './dto/response/message-response.dto';
   },
   namespace: 'chat',
 })
-export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class ChatSharedGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userShareService: UserShareService,
@@ -42,7 +39,7 @@ export class ChatGateway
 
   @WebSocketServer()
   private server: Server;
-  private logger = new Logger(ChatGateway.name);
+  private logger = new Logger(ChatSharedGateway.name);
 
   afterInit(server: Server) {
     // Init server
@@ -52,19 +49,15 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     const token =
-      client.handshake.auth.token ||
-      client.handshake.headers.authorization?.replace('Bearer ', '');
+      client.handshake.auth.token || client.handshake.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       client.disconnect();
       return;
     }
     try {
-      const userRequestPayload = this.jwtService.verify<UserRequestPayload>(
-        token,
-        {
-          secret: this.jwtConfig.secret,
-        },
-      );
+      const userRequestPayload = this.jwtService.verify<UserRequestPayload>(token, {
+        secret: this.jwtConfig.secret,
+      });
       const user = await this.userShareService.findOne(userRequestPayload.id);
 
       this.onlineUserService.addAccountOnline(user.id, client);
@@ -99,27 +92,20 @@ export class ChatGateway
 
   async handleDisconnect(client: Socket) {
     const token =
-      client.handshake.auth.token ||
-      client.handshake.headers.authorization?.replace('Bearer ', '');
+      client.handshake.auth.token || client.handshake.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       client.disconnect();
       return;
     }
     try {
-      const userRequestPayload = this.jwtService.verify<UserRequestPayload>(
-        token,
-        {
-          secret: this.jwtConfig.secret,
-        },
-      );
+      const userRequestPayload = this.jwtService.verify<UserRequestPayload>(token, {
+        secret: this.jwtConfig.secret,
+      });
       const user = await this.userShareService.findOne(userRequestPayload.id);
       this.onlineUserService.deleteAccountOnline(user.id, client);
 
       // Check if admin
-      if (
-        userRequestPayload.roles &&
-        userRequestPayload.roles.includes(RoleType.ADMIN)
-      ) {
+      if (userRequestPayload.roles && userRequestPayload.roles.includes(RoleType.ADMIN)) {
         this.onlineUserService.deleteAdminOnline(user.id, client);
       }
       client.leave(`userId:${user.id}`);
@@ -131,13 +117,8 @@ export class ChatGateway
     }
   }
 
-  async sendMessageToConversation(
-    conversationId: string,
-    message: MessageResponseDto,
-  ) {
-    this.server
-      .to(`conversation:${conversationId}`)
-      .emit(CONSTANTS.EVENT.CHAT, message);
+  async sendMessageToConversation(conversationId: string, message: MessageResponseDto) {
+    this.server.to(`conversation:${conversationId}`).emit(CONSTANTS.EVENT.CHAT, message);
   }
 
   async pushUserToConversationRoom(userId: string, conversationId: string) {

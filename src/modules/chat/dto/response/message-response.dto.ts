@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 @Exclude()
 export class MessageResponseDto {
   @Expose()
-  @ApiProperty({ type: String })
-  id: string;
+  @ApiProperty({ type: Number })
+  id: number;
 
   @Expose()
   @ApiProperty({ type: String })

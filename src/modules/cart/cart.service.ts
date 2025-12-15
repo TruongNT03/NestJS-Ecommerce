@@ -46,11 +46,24 @@ export class CartService extends BaseService {
       await this.cartRepo.save(cart);
     }
 
-    await this.cartItemRepo.save({
-      productVariantId,
-      cartId: cart.id,
-      quantity,
+    let existCartItem = await this.cartItemRepo.findOne({
+      where: {
+        productVariantId: productVariantId,
+      },
     });
+
+    if (!existCartItem) {
+      existCartItem = await this.cartItemRepo.save({
+        productVariantId,
+        cartId: cart.id,
+        quantity,
+      });
+    }
+
+    await this.cartItemRepo.update(
+      { id: existCartItem.id },
+      { quantity: existCartItem.quantity + quantity },
+    );
 
     return {
       success: true,
@@ -67,9 +80,7 @@ export class CartService extends BaseService {
     return cart;
   }
 
-  async getCartSummary(
-    user: UserRequestPayload,
-  ): Promise<CartSummaryResponseDto | []> {
+  async getCartSummary(user: UserRequestPayload): Promise<CartSummaryResponseDto | []> {
     const userId = user.id;
 
     const cart = await this.findOrCreateCart(userId);
@@ -84,7 +95,6 @@ export class CartService extends BaseService {
         .leftJoinAndSelect('variantValue.variant', 'variant')
         .leftJoinAndSelect('cartItem.cart', 'cart')
         .where('cart.userId = :userId', { userId: user.id })
-        .distinctOn(['cartItem.id'])
         .orderBy('cartItem.id', 'DESC')
         .addOrderBy('cartItem.updatedAt', 'DESC')
         .limit(5)
@@ -117,11 +127,7 @@ export class CartService extends BaseService {
       .where('cart.userId = :userId', { userId: user.id })
       .orderBy('cartItem.updatedAt', 'DESC');
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListCartItemResponseDto, { data, paginate });
   }
@@ -147,10 +153,7 @@ export class CartService extends BaseService {
       where: { id: productVariantId },
     });
 
-    await this.cartItemRepo.update(
-      { id },
-      { productVariant, productVariantId },
-    );
+    await this.cartItemRepo.update({ id }, { productVariant, productVariantId });
 
     return {
       success: true,

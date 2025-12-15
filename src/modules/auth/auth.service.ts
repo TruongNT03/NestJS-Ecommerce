@@ -76,6 +76,12 @@ export class AuthService extends BaseService {
 
   async register(dto: RegisterDto): Promise<RegisterResponseDto> {
     const { email, password } = dto;
+    const existUser = await this.userRepo.findOne({
+      where: { email },
+    });
+    if (existUser) {
+      throw new ServerException({ ...ERROR_RESPONSE.EMAIL_ALREADY_EXIST });
+    }
     const token = v4();
     const redisKey = this.redisService.getRegisterKey(token);
     const OTP = generateOTP();

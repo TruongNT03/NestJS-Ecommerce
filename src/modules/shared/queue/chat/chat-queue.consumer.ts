@@ -5,6 +5,9 @@ import { OnlineUserService } from '../../online-user/online-user.service';
 import { Repository } from 'typeorm';
 import { UserConversation } from 'src/entities/user-conversations.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AddNewClientInitChat } from './dto/add-new-client-init-chat.dto';
+import { MessageEntity } from 'src/entities/message.entity';
+import { ChatSharedGateway } from 'src/modules/chat/chat-shared/chat-shared.gateway';
 
 @Processor(CHAT_QUEUE.NAME)
 export class ChatQueueConsumer extends WorkerHost {
@@ -12,8 +15,11 @@ export class ChatQueueConsumer extends WorkerHost {
     private readonly onlineUserService: OnlineUserService,
     @InjectRepository(UserConversation)
     private readonly userConversationRepo: Repository<UserConversation>,
+    @InjectRepository(MessageEntity)
+    private readonly messageRepo: Repository<MessageEntity>,
     @InjectQueue(CHAT_QUEUE.NAME)
     private readonly chatQueue: Queue,
+    private readonly chatSharedGateway: ChatSharedGateway,
   ) {
     super();
   }
@@ -25,12 +31,29 @@ export class ChatQueueConsumer extends WorkerHost {
           await this.chatQueue.add(job.name, job.data, { delay: 5000 });
           return;
         }
-        const ramdomAdmin =
-          adminOnlines[Math.floor(Math.random() * adminOnlines.length)];
+        const ramdomAdmin = adminOnlines[Math.floor(Math.random() * adminOnlines.length)];
+
+        const data: AddNewClientInitChat = job.data;
+        const { conversation, message } = data;
         await this.userConversationRepo.save({
-          ...job.data,
+          id: conversation.id,
+          conversationId: conversation.conversationId,
           userId: ramdomAdmin,
         });
+        await this.messageRepo.save({
+          id: message.id,
+          senderId: ramdomAdmin,
+        });
+
+        await this.chatSharedGateway.pushUserToConversationRoom(
+          ramdomAdmin,
+          conversation.conversationId,
+        );
+
+        await this.chatSharedGateway.sendMessageToConversation(
+          conversation.conversationId,
+          message,
+        );
       }
     }
   }

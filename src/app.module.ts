@@ -34,6 +34,7 @@ import { AdminModule } from 'src/modules/admin/admin.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { ReviewModule } from './modules/review/review.module';
+import { ChatSharedModule } from './modules/chat/chat-shared/chat-shared.module';
 
 @Module({
   imports: [
@@ -43,9 +44,7 @@ import { ReviewModule } from './modules/review/review.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [databaseConfiguration.KEY],
-      useFactory: (
-        databaseConfig: ConfigType<typeof databaseConfiguration>,
-      ) => {
+      useFactory: (databaseConfig: ConfigType<typeof databaseConfiguration>) => {
         return databaseConfig;
       },
     }),
@@ -81,6 +80,7 @@ import { ReviewModule } from './modules/review/review.module';
     CategoriesModule,
     ChatbotModule,
     ReviewModule,
+    ChatSharedModule,
   ],
   controllers: [],
   providers: [

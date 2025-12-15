@@ -6,6 +6,8 @@ import { ChatQueueConsumer } from './chat-queue.consumer';
 import { OnlineUserModule } from '../../online-user/online-user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserConversation } from 'src/entities/user-conversations.entity';
+import { MessageEntity } from 'src/entities/message.entity';
+import { ChatSharedModule } from 'src/modules/chat/chat-shared/chat-shared.module';
 
 @Module({
   imports: [
@@ -13,7 +15,8 @@ import { UserConversation } from 'src/entities/user-conversations.entity';
       name: CHAT_QUEUE.NAME,
     }),
     OnlineUserModule,
-    TypeOrmModule.forFeature([UserConversation]),
+    TypeOrmModule.forFeature([UserConversation, MessageEntity]),
+    ChatSharedModule,
   ],
   providers: [ChatQueueProducer, ChatQueueConsumer],
   exports: [ChatQueueProducer],

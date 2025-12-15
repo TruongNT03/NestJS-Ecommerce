@@ -12,7 +12,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { ListConversationResponseDto } from './dto/response/list-conversation-response.dto';
 import { ConversationResponseDto } from './dto/response/conversation-reponse.dto';
-import { ChatGateway } from './chat.gateway';
 import { MessageEntity } from 'src/entities/message.entity';
 import { CONSTANTS } from './chat.constant';
 import { CreateMessageDto } from './dto/request/create-message.dto';
@@ -25,6 +24,8 @@ import { ListMessageQueryDto } from 'src/modules/chat/dto/request/list-message-q
 import { ListMessageResponseDto } from 'src/modules/chat/dto/response/list-message-response.dto';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
 import { MessageResponseDto } from './dto/response/message-response.dto';
+import { Socket } from 'socket.io';
+import { ChatSharedGateway } from './chat-shared/chat-shared.gateway';
 
 @Injectable()
 export class ChatService extends BaseService {
@@ -36,30 +37,35 @@ export class ChatService extends BaseService {
     private readonly userConversationRepo: Repository<UserConversation>,
     @InjectRepository(MessageEntity)
     private readonly messageRepo: Repository<MessageEntity>,
-    private readonly chatGateway: ChatGateway,
+    private readonly chatGateway: ChatSharedGateway,
     private readonly onlineUserService: OnlineUserService,
     private readonly chatQueueProducer: ChatQueueProducer,
     private readonly notificationService: NotificationService,
   ) {
     super();
   }
-  async createConversation(
-    user: UserRequestPayload,
-  ): Promise<SuccessResponseDto> {
+  async createConversation(user: UserRequestPayload): Promise<SuccessResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.startTransaction();
+    let adminOnlineId: string;
     try {
       const conversation = await queryRunner.manager.save(Conversation, {}, {});
+
+      // Init waiting message
+      const message = await queryRunner.manager.save(MessageEntity, {
+        content: CONSTANTS.MESSAGE_CONTENT.INIT_CHAT,
+        senderId: null,
+        conversationId: conversation.id,
+      });
 
       // Linking if has admin online
       const onlineAdmins = this.onlineUserService.getAdminOnline();
 
       if (onlineAdmins && onlineAdmins.length) {
         // Random admin
-        const randomAdmin =
-          onlineAdmins[Math.floor(Math.random() * onlineAdmins.length)];
-
+        const randomAdmin = onlineAdmins[Math.floor(Math.random() * onlineAdmins.length)];
+        adminOnlineId = randomAdmin;
         // Create UserConversation
         await Promise.all([
           // For user
@@ -92,21 +98,19 @@ export class ChatService extends BaseService {
         ]);
 
         // Push waiting conversation into the queue
-        await this.chatQueueProducer.addNewClientInitChat(
-          adminWaitingConversation,
-        );
+        await this.chatQueueProducer.addNewClientInitChat({
+          conversation: adminWaitingConversation,
+          message: plainToInstance(MessageResponseDto, message),
+        });
       }
-      // Init waiting message
-      const message = await queryRunner.manager.save(MessageEntity, {
-        content: CONSTANTS.MESSAGE_CONTENT.INIT_CHAT,
-        senderId: null,
-        conversationId: conversation.id,
-      });
+
       // Push to new conversation was created
-      await this.chatGateway.pushUserToConversationRoom(
-        user.id,
-        conversation.id,
-      );
+      await this.chatGateway.pushUserToConversationRoom(user.id, conversation.id);
+
+      // Push admin online to new conversation if exist
+      if (adminOnlineId) {
+        await this.chatGateway.pushUserToConversationRoom(adminOnlineId, conversation.id);
+      }
 
       // Notification
       await this.chatGateway.sendMessageToConversation(
@@ -182,10 +186,7 @@ export class ChatService extends BaseService {
       conversationId,
       plainToInstance(MessageResponseDto, message),
     );
-    const newMessageNotifications = await this.getNewMessageNotification(
-      user.id,
-      conversationId,
-    );
+    const newMessageNotifications = await this.getNewMessageNotification(user.id, conversationId);
 
     await Promise.all(
       newMessageNotifications.map(async (newMessageNotification) => {
@@ -205,15 +206,16 @@ export class ChatService extends BaseService {
         userId: Not(In([senderId])),
       },
     });
-    const newMessageNotifications: SaveNotificationDto[] =
-      userConversations.map((userConversation) => ({
+    const newMessageNotifications: SaveNotificationDto[] = userConversations.map(
+      (userConversation) => ({
         alertTo: RoleType.ADMIN,
         content: `Bạn có tin nhắn mới.`,
         navigateTo: NotificationNavigateTo.CONVERSATION_DETAIL,
         title: `Tin nhắn mới.`,
         triggerBy: `ChatService.createMessage`,
         userId: userConversation.userId,
-      }));
+      }),
+    );
     return newMessageNotifications;
   }
 
@@ -233,11 +235,7 @@ export class ChatService extends BaseService {
       })
       .orderBy('m.createdAt', 'DESC');
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListMessageResponseDto, {
       data,
@@ -245,9 +243,7 @@ export class ChatService extends BaseService {
     });
   }
 
-  async getConversation(
-    user: UserRequestPayload,
-  ): Promise<ConversationResponseDto> {
+  async getConversation(user: UserRequestPayload): Promise<ConversationResponseDto> {
     const conversation = await this.conversationRepo.findOne({
       where: { users: { id: user.id } },
       relations: ['users'],

@@ -17,6 +17,8 @@ import { Address } from './address.entity';
 import { Order } from './order.entity';
 import { UserGender } from 'src/modules/auth/dto/request/update-profile.dto';
 import { Review } from './review.entity';
+import { LoginType } from 'src/common/enum/login-type.enum';
+import { UserMetaData } from 'src/common/dto/user-meta-data.dto';
 
 export const TableName = 'users';
 
@@ -38,11 +40,17 @@ export class UserEntity extends AbstractEntity<UserEntity> {
   avatar: string;
 
   @Exclude()
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column()
   gender: UserGender;
+
+  @Column()
+  loginType: LoginType;
+
+  @Column({ type: 'jsonb' })
+  metaData: UserMetaData;
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification;

@@ -58,40 +58,22 @@ export class AdminDashboardService extends BaseService {
       .where('EXTRACT(YEAR FROM "order"."created_at") = :year', { year });
 
     if (statisticBy === AdminDashboardStatisticBy.MONTH) {
-      newUserQueryBuilder.andWhere(
-        'EXTRACT(MONTH FROM "user"."created_at") = :month',
-        {
-          month,
-        },
-      );
-      newOrderQueryBuilder.andWhere(
-        'EXTRACT(MONTH FROM "order"."created_at") = :month',
-        {
-          month,
-        },
-      );
+      newUserQueryBuilder.andWhere('EXTRACT(MONTH FROM "user"."created_at") = :month', {
+        month,
+      });
+      newOrderQueryBuilder.andWhere('EXTRACT(MONTH FROM "order"."created_at") = :month', {
+        month,
+      });
     } else if (statisticBy === AdminDashboardStatisticBy.DAY || !statisticBy) {
-      newUserQueryBuilder.andWhere(
-        'EXTRACT(MONTH FROM "user"."created_at") = :month',
-        {
-          month,
-        },
-      );
-      newUserQueryBuilder.andWhere(
-        'EXTRACT(DAY FROM "user"."created_at") = :day',
-        { day },
-      );
+      newUserQueryBuilder.andWhere('EXTRACT(MONTH FROM "user"."created_at") = :month', {
+        month,
+      });
+      newUserQueryBuilder.andWhere('EXTRACT(DAY FROM "user"."created_at") = :day', { day });
 
-      newOrderQueryBuilder.andWhere(
-        'EXTRACT(MONTH FROM "order"."created_at") = :month',
-        {
-          month,
-        },
-      );
-      newOrderQueryBuilder.andWhere(
-        'EXTRACT(DAY FROM "order"."created_at") = :day',
-        { day },
-      );
+      newOrderQueryBuilder.andWhere('EXTRACT(MONTH FROM "order"."created_at") = :month', {
+        month,
+      });
+      newOrderQueryBuilder.andWhere('EXTRACT(DAY FROM "order"."created_at") = :day', { day });
     }
 
     const revenue = 0;
@@ -132,8 +114,7 @@ export class AdminDashboardService extends BaseService {
       await Promise.all(
         orders.map((order) => {
           order.orderItems.map((orderItem) => {
-            totalRevenueOfDay +=
-              orderItem.quantity * orderItem.productVariant.price;
+            totalRevenueOfDay += orderItem.quantity * orderItem.productVariant.price;
           });
         }),
       );
@@ -168,8 +149,8 @@ export class AdminDashboardService extends BaseService {
       });
       result.push({
         id: order.id,
-        userName: order.user.name,
-        userEmail: order.user.email,
+        userName: order.user?.name,
+        userEmail: order.user?.email,
         totalItem: order.orderItems.length,
         amount: amount,
         createdAt: order.createdAt,

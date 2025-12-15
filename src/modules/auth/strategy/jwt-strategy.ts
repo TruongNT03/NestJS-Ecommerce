@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
   async validate(payload: JwtPayload): Promise<UserRequestPayload> {
-    const { id, email, jti, roles, type } = payload;
+    const { id, email, jti, roles, type, loginType } = payload;
     if (type !== TokenType.ACCESS_TOKEN) {
       throw new ServerException(ERROR_RESPONSE.INVALID_TOKEN_USAGE);
     }
@@ -43,6 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       email,
       jti,
       roles,
+      loginType,
     };
   }
 }

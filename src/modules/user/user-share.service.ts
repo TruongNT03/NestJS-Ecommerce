@@ -14,6 +14,7 @@ import { UserRequestPayload } from '../auth/auth.interface';
 import { UpdateProfileDto } from '../auth/dto/request/update-profile.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { BaseService } from 'src/base.service';
+import { LoginType } from 'src/common/enum/login-type.enum';
 
 @Injectable()
 export class UserShareService extends BaseService {
@@ -26,10 +27,7 @@ export class UserShareService extends BaseService {
     super();
   }
   async findOneByEmail(email: string): Promise<UserResponseDto> {
-    return plainToInstance(
-      UserResponseDto,
-      await this.userRepo.findOneBy({ email: email }),
-    );
+    return plainToInstance(UserResponseDto, await this.userRepo.findOneBy({ email: email }));
   }
 
   async findOne(id: string) {
@@ -56,6 +54,7 @@ export class UserShareService extends BaseService {
       email: dto.email,
       password: dto.password,
       roles: [userRole],
+      loginType: LoginType.DEFAULT,
     });
     await this.userRepo.save(user);
 

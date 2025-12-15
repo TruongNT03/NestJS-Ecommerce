@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/request/register.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { MailService } from '../shared/mail/mail.service';
@@ -13,8 +13,14 @@ import { LoginDto } from './dto/request/login.dto';
 import { ServerException } from 'src/exceptions/sever.exception';
 import { ERROR_RESPONSE } from 'src/common/constants/error-response.constants';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, TokenType, UserRequestPayload } from './auth.interface';
-import { ConfigService } from '@nestjs/config';
+import {
+  GoogleRedisData,
+  JwtPayload,
+  TokenType,
+  UserGooglePayload,
+  UserRequestPayload,
+} from './auth.interface';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { UserEntity } from 'src/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { LoginResponseDto } from './dto/response/login-response.dto';
@@ -40,6 +46,12 @@ import { RoleType } from 'src/common/enum/role.enum';
 import { UserShareService } from '../user/user-share.service';
 import { UpdateProfileDto } from './dto/request/update-profile.dto';
 import { NotificationService } from 'src/modules/notification/notification.service';
+import { Profile } from 'passport-google-oauth20';
+import { LoginType } from 'src/common/enum/login-type.enum';
+import { RoleEntity } from 'src/entities/role.entity';
+import { MailQueueProducer } from '../shared/queue/mail/mail-queue.producer';
+import { Request, Response } from 'express';
+import { appConfiguration } from 'src/config';
 
 @Injectable()
 export class AuthService extends BaseService {
@@ -53,6 +65,11 @@ export class AuthService extends BaseService {
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     private readonly notificationService: NotificationService,
+    @InjectRepository(RoleEntity)
+    private readonly roleRepo: Repository<RoleEntity>,
+    private readonly mailQueueProducer: MailQueueProducer,
+    @Inject(appConfiguration.KEY)
+    private readonly appConfig: ConfigType<typeof appConfiguration>,
   ) {
     super();
   }
@@ -62,25 +79,73 @@ export class AuthService extends BaseService {
     const token = v4();
     const redisKey = this.redisService.getRegisterKey(token);
     const OTP = generateOTP();
+    const redisOTPKey = this.redisService.getOTPPattern(token);
+    await this.redisService.setValue<string>(redisOTPKey, OTP);
     const hashPassword = hashingPassword(password);
     await this.redisService.setValue<RegisterRedisValueDto>(
       redisKey,
       { email, password: hashPassword, OTP },
-      300,
+      600,
     );
-    await this.mailService.sendMail(OTP, dto.email);
+    await this.mailQueueProducer.sendOTP(OTP, dto.email);
     return {
       token,
     };
   }
 
-  async verifyRegister(
-    dto: VerifyRegisterDto,
-    token: string,
-  ): Promise<SaveEntityResponseDto> {
+  async loginWithGoogle(user: UserGooglePayload, res: Response) {
+    const { email, googleId, avatar, name } = user;
+    // Check exist email
+    const userDefault = await this.userRepo.findOne({
+      where: {
+        email: email,
+        loginType: LoginType.DEFAULT,
+      },
+    });
+    if (userDefault) {
+      // throw new ServerException(ERROR_RESPONSE.EMAIL_ALREADY_EXIST);
+      return res.redirect(
+        `${this.appConfig.frontendUrl}/auth/google/callback?error=email_already_use`,
+      );
+    }
+
+    // Find already exist account
+    let existUserGoogle = await this.userRepo.findOne({
+      where: { email, loginType: LoginType.GOOGLE },
+      relations: ['roles'],
+    });
+
+    // Not already exist
+    if (!existUserGoogle) {
+      // Find User Role Entity
+      const roleUser = await this.roleRepo.findOne({
+        where: { name: RoleType.USER },
+      });
+
+      // Create User
+      existUserGoogle = await this.userRepo.save({
+        email,
+        loginType: LoginType.GOOGLE,
+        name,
+        avatar,
+        metaData: {
+          googleId,
+        },
+        roles: [roleUser],
+      });
+    }
+
+    // Generate token
+    const { accessToken, refreshToken } = await this.manageUserToken(existUserGoogle);
+    return res.redirect(
+      `${this.appConfig.frontendUrl}/auth/google/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    );
+  }
+
+  async verifyRegister(dto: VerifyRegisterDto, token: string): Promise<SaveEntityResponseDto> {
     const redisKey = this.redisService.getRegisterKey(token);
-    const redisValue =
-      await this.redisService.getValue<RegisterRedisValueDto>(redisKey);
+    const redisOTPPatternKey = this.redisService.getOTPPattern(token);
+    const redisValue = await this.redisService.getValue<RegisterRedisValueDto>(redisKey);
     if (!redisValue) {
       throw new ServerException(ERROR_RESPONSE.BAD_REQUEST);
     }
@@ -88,6 +153,7 @@ export class AuthService extends BaseService {
       throw new ServerException(ERROR_RESPONSE.OTP_INVALID);
     }
     await this.redisService.deleteKey(redisKey);
+    await this.redisService.deleteKey(redisOTPPatternKey);
     return await this.userShareService.create({
       email: redisValue.email,
       password: redisValue.password,
@@ -97,7 +163,7 @@ export class AuthService extends BaseService {
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = dto;
     const user = await this.userRepo.findOne({
-      where: { email },
+      where: { email, loginType: LoginType.DEFAULT },
       relations: ['roles'],
     });
     if (!user) {
@@ -123,6 +189,7 @@ export class AuthService extends BaseService {
       email: user.email,
       jti: jti,
       roles: user.roles.map((role) => role.name) as RoleType[],
+      loginType: user.loginType,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -141,9 +208,7 @@ export class AuthService extends BaseService {
     await this.redisService.setValue(
       this.redisService.getUserTokenKey(user.id, jti),
       'deviceId',
-      convertDatePatternToSecond(
-        this.configService.get<string>('JWT_REFRESH_EXPIRES'),
-      ),
+      convertDatePatternToSecond(this.configService.get<string>('JWT_REFRESH_EXPIRES')),
     );
 
     return { accessToken, refreshToken };
@@ -179,14 +244,13 @@ export class AuthService extends BaseService {
       jti,
       type: TokenType.ACCESS_TOKEN,
       roles: user.roles,
+      loginType: user.loginType,
     };
     const userTokenKey = this.redisService.getUserTokenKey(user.id, jti);
     await this.redisService.setValue(
       userTokenKey,
       'deviceId',
-      convertDatePatternToSecond(
-        this.configService.get<string>('JWT_ACCESS_EXPIRES'),
-      ),
+      convertDatePatternToSecond(this.configService.get<string>('JWT_ACCESS_EXPIRES')),
     );
     const accessToken = await this.generateToken(
       payload,
@@ -198,9 +262,7 @@ export class AuthService extends BaseService {
     };
   }
 
-  async forgotPassword(
-    dto: ForgotPasswordDto,
-  ): Promise<ForgotPasswordResponseDto> {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
     const { email } = dto;
     const user = await this.userRepo.findOneBy({ email });
     if (!user) {
@@ -282,11 +344,7 @@ export class AuthService extends BaseService {
 
   async upload(dto: UploadDto): Promise<UploadResponseDto> {
     const { fileName, contentType } = dto;
-    return await this.s3Service.getPresign(
-      fileName,
-      contentType,
-      BucketFolder.AVATAR,
-    );
+    return await this.s3Service.getPresign(fileName, contentType, BucketFolder.AVATAR);
   }
 
   async updateProfile(
@@ -294,5 +352,29 @@ export class AuthService extends BaseService {
     dto: UpdateProfileDto,
   ): Promise<SuccessResponseDto> {
     return await this.userShareService.updateProfile(user, dto);
+  }
+
+  async resendRegisterOTP(token: string): Promise<SuccessResponseDto> {
+    const redisKey = this.redisService.getOTPPattern(token);
+    const registerKey = this.redisService.getRegisterKey(token);
+    const registerData = await this.redisService.getValue<RegisterRedisValueDto>(registerKey);
+    const OTP = await this.redisService.getValue<string>(redisKey);
+    if (OTP) {
+      throw new ServerException({
+        ...ERROR_RESPONSE.BAD_REQUEST,
+        message: 'Unable to resend OTP, please wait a moment.',
+      });
+    }
+    const newOTP = generateOTP(6);
+    await this.mailQueueProducer.sendOTP(newOTP, registerData.email);
+    const newRedisKey = this.redisService.getOTPPattern(token);
+    await this.redisService.setValue<string>(newRedisKey, newOTP, 300);
+    await this.redisService.setValue<RegisterRedisValueDto>(
+      registerKey,
+      { email: registerData.email, password: registerData.password, OTP: newOTP },
+      600,
+    );
+
+    return this.successResponse();
   }
 }

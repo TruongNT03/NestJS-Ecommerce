@@ -5,3 +5,5 @@ export { default as databaseConfiguration } from './database.config';
 export { default as redisConfiguration } from './redis.config';
 export { default as payosConfiguration } from './payos.config';
 export { default as chatbotServiceConfiguration } from './chatbot-service.config';
+export { default as googleOAuthConfiguration } from './google-oauth.config';
+export { default as appConfiguration } from './app.config';

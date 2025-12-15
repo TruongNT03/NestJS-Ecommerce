@@ -1,9 +1,4 @@
-import {
-  Command,
-  CommandRunner,
-  InquirerService,
-  Option,
-} from 'nest-commander';
+import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 import { commandConstants, questionConstants } from './command.constant';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/entities/user.entity';
@@ -32,20 +27,24 @@ export class CreateAdminCommand extends CommandRunner {
       password: string;
     }>(questionConstants.createAdmin, undefined);
 
-    const existUser = await this.userRepo.findOneBy({ email: account.email });
-    if (existUser) {
-      throw new Error('Email already exist.');
+    try {
+      const existUser = await this.userRepo.findOneBy({ email: account.email });
+      if (existUser) {
+        throw new Error('Email already exist.');
+      }
+
+      const adminRole = await this.roleRepo.findOneBy({ name: RoleType.ADMIN });
+
+      const user = await this.userRepo.save({
+        email: account.email,
+        password: hashingPassword(account.password),
+        roles: [adminRole],
+      });
+
+      console.log('Admin account has been created.');
+    } catch (error) {
+      console.error('Fail to create admin account', error);
     }
-
-    const adminRole = await this.roleRepo.findOneBy({ name: RoleType.ADMIN });
-
-    const user = await this.userRepo.save({
-      email: account.email,
-      password: hashingPassword(account.password),
-      roles: [adminRole],
-    });
-
-    console.log('Admin account has been created.');
   }
   @Option({
     flags: '-s, --shell <shell>',

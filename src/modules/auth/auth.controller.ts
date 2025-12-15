@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/request/register.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
@@ -16,7 +8,7 @@ import { RegisterResponseDto } from './dto/response/register-response.dto';
 import { LoginDto } from './dto/request/login.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { User } from 'src/decorators/user.decorator';
-import { JwtPayload, UserRequestPayload } from './auth.interface';
+import { JwtPayload, UserGooglePayload, UserRequestPayload } from './auth.interface';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { RefreshTokenResponseDto } from './dto/response/refresh-token-response.dto';
 import { UserResponseDto } from '../user/dto/response/user-response.dto';
@@ -32,6 +24,8 @@ import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { UpdateProfileDto } from './dto/request/update-profile.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleOAuthGuard } from './guard/google-oauth.guard';
+import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -43,6 +37,22 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: RegisterDto): Promise<RegisterResponseDto> {
     return await this.authService.register(body);
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'LOGIN WITH GOOGLE' })
+  @ApiResponse({ status: 200 })
+  @UseGuards(GoogleOAuthGuard)
+  @Get('google')
+  async googleAuth() {}
+
+  @Public()
+  @ApiOperation({ summary: 'GOOGLE OAUTH CALLBACK' })
+  @ApiResponse({ status: 200 })
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    return await this.authService.loginWithGoogle(req.user as UserGooglePayload, res);
   }
 
   @Public()
@@ -89,9 +99,7 @@ export class AuthController {
   @ApiOperation({ summary: 'REFRESH TOKEN' })
   @ApiResponse({ status: 201, type: RefreshTokenResponseDto })
   @Get('refresh-token')
-  async refreshToken(
-    @User() user: JwtPayload,
-  ): Promise<RefreshTokenResponseDto> {
+  async refreshToken(@User() user: JwtPayload): Promise<RefreshTokenResponseDto> {
     return await this.authService.refreshToken(user);
   }
 
@@ -99,9 +107,7 @@ export class AuthController {
   @ApiOperation({ summary: 'REQUEST FORGOT PASSWORD' })
   @ApiResponse({ status: 201, type: ForgotPasswordResponseDto })
   @Post('forgot-password')
-  async forgotPassword(
-    @Body() body: ForgotPasswordDto,
-  ): Promise<ForgotPasswordResponseDto> {
+  async forgotPassword(@Body() body: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
     return await this.authService.forgotPassword(body);
   }
 
@@ -147,5 +153,13 @@ export class AuthController {
     @Body() body: UpdateProfileDto,
   ): Promise<SuccessResponseDto> {
     return await this.authService.updateProfile(user, body);
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'RESEND OPT' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
+  @Post('resend-otp/:token')
+  async resendOTP(@Param('token') token: string): Promise<SuccessResponseDto> {
+    return await this.authService.resendRegisterOTP(token);
   }
 }

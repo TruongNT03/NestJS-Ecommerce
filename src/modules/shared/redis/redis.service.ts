@@ -5,13 +5,8 @@ import Redis from 'ioredis';
 export class RedisService {
   constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
-  async setValue<T = any>(
-    key: string,
-    value: T,
-    ttlSeconds?: number | string,
-  ): Promise<void> {
-    const serialized =
-      typeof value === 'string' ? value : JSON.stringify(value);
+  async setValue<T = any>(key: string, value: T, ttlSeconds?: number | string): Promise<void> {
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value);
     if (ttlSeconds) {
       await this.redis.set(key, serialized, 'EX', ttlSeconds);
     } else {
@@ -54,5 +49,13 @@ export class RedisService {
 
   getForgotPasswordKey(token: string, userId: string) {
     return `userId:${userId}:token:${token}`;
+  }
+
+  getOTPPattern(token: string) {
+    return `token:${token}`;
+  }
+
+  getGoogleOAuthPattern(code: string) {
+    return `googleOAuth:${code}`;
   }
 }

@@ -15,24 +15,18 @@ export class MailService {
 
   async sendMail(otp: string, receiverEmail: string): Promise<void> {
     const senderEmail = this.configService.get('MAIL_USER');
-    const htmlContent = await render(
-      RegisterSendOTP({ verificationCode: otp }),
-    );
+    const htmlContent = await render(RegisterSendOTP({ verificationCode: otp }));
     this.transporter.sendMail({
       from: `My Shop <${senderEmail}>`,
+      subject: 'Mã OTP đăng ký tài khoản',
       to: receiverEmail,
       html: htmlContent,
     });
   }
 
-  async sendForgotPasswordMail(
-    otp: string,
-    receiverEmail: string,
-  ): Promise<void> {
+  async sendForgotPasswordMail(otp: string, receiverEmail: string): Promise<void> {
     const senderEmail = this.configService.get('MAIL_USER');
-    const htmlContent = await render(
-      RegisterSendOTP({ verificationCode: otp }),
-    );
+    const htmlContent = await render(RegisterSendOTP({ verificationCode: otp }));
     this.transporter.sendMail({
       subject: 'Forgot password OTP',
       from: `My Shop <${senderEmail}>`,

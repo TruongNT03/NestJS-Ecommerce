@@ -12,28 +12,28 @@ import {
   Text,
   Tailwind,
 } from '@react-email/components';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 interface VerifyEmailProps {
   verificationCode?: string;
 }
 
-const logoUrl =
-  'https://logos-world.net/wp-content/uploads/2020/05/Zara-Logo.png';
-
 export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Mã OTP của bạn là: {verificationCode}</Preview>
       <Tailwind>
         <Body className="bg-gray-100 font-sans">
           <Container className="bg-white my-12 mx-auto p-8 rounded-lg shadow-md max-w-md">
             <Img
-              src={logoUrl}
-              width="48"
-              height="48"
+              src={process.env.MAIL_LOGO_URL}
+              width={180}
               alt="Logo"
-              className="mx-auto"
+              style={{
+                display: 'block',
+              }}
+              className="mx-auto mb-16"
             />
 
             <Heading className="text-2xl font-semibold text-center text-gray-800 mt-6 text-center">
@@ -41,8 +41,8 @@ export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
             </Heading>
 
             <Text className="text-gray-600 text-base leading-relaxed my-4 text-center">
-              Cảm ơn bạn đã đăng ký. Vui lòng sử dụng mã OTP dưới đây để hoàn
-              tất việc xác thực tài khoản:
+              Cảm ơn bạn đã đăng ký. Vui lòng sử dụng mã OTP dưới đây để hoàn tất việc xác thực tài
+              khoản:
             </Text>
 
             <Section className="text-center my-6">
@@ -51,25 +51,24 @@ export default function VerifyEmail({ verificationCode }: VerifyEmailProps) {
               </Text>
             </Section>
 
-            <Text className="text-gray-600 text-base leading-relaxed">
+            <Text className="text-gray-600 text-base leading-relaxed text-center">
               Vì lý do bảo mật, mã này sẽ chỉ có hiệu lực trong vòng 5 phút.
             </Text>
 
-            <Text className="text-gray-600 text-base leading-relaxed mt-4">
-              Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này một cách
-              an toàn.
+            <Text className="text-gray-600 text-base leading-relaxed mt-4 text-center">
+              Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này một cách an toàn.
             </Text>
 
             <Hr className="border-gray-300 my-5" />
 
             <Text className="text-gray-500 text-xs text-center">
-              © 2025 Tên Công Ty Của Bạn, Địa chỉ công ty
+              © 2025 Tee Shop, Hà Nội, Việt Nam
             </Text>
             <Link
-              href="https://your-website.com"
+              href="https://teeshop.io.vn"
               className="text-gray-500 text-xs text-center block underline"
             >
-              your-website.com
+              teeshop.io.vn
             </Link>
           </Container>
         </Body>

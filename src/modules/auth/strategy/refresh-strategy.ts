@@ -23,7 +23,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     });
   }
   async validate(payload: JwtPayload): Promise<UserRequestPayload> {
-    const { id, email, jti, roles, type } = payload;
+    const { id, email, jti, roles, type, loginType } = payload;
     if (type !== TokenType.REFRESH_TOKEN) {
       throw new ServerException(ERROR_RESPONSE.INVALID_TOKEN_USAGE);
     }
@@ -44,6 +44,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
       email,
       jti,
       roles,
+      loginType,
     };
   }
 }

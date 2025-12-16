@@ -96,6 +96,7 @@ export class CartService extends BaseService {
         .leftJoinAndSelect('cartItem.cart', 'cart')
         .where('cart.userId = :userId', { userId: user.id })
         .orderBy('cartItem.id', 'DESC')
+        .addOrderBy('pi.id', 'ASC')
         .addOrderBy('cartItem.updatedAt', 'DESC')
         .limit(5)
         .getMany(),
@@ -125,7 +126,8 @@ export class CartService extends BaseService {
       .leftJoinAndSelect('variantValue.variant', 'variant')
       .leftJoinAndSelect('cartItem.cart', 'cart')
       .where('cart.userId = :userId', { userId: user.id })
-      .orderBy('cartItem.updatedAt', 'DESC');
+      .orderBy('cartItem.updatedAt', 'DESC')
+      .addOrderBy('productImages.id', 'ASC');
 
     const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 

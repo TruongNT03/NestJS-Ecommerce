@@ -24,25 +24,12 @@ export class ProductService extends BaseService {
   ) {
     super();
   }
-  async findAll(
-    query: FindAllProductQueryDto,
-  ): Promise<ListUserProductResponseDto> {
+  async findAll(query: FindAllProductQueryDto): Promise<ListUserProductResponseDto> {
     return await this.queryFindAll(query);
   }
 
-  private async queryFindAll(
-    query: FindAllProductQueryDto,
-  ): Promise<ListUserProductResponseDto> {
-    const {
-      page,
-      pageSize,
-      categoryIds,
-      search,
-      sortOrder,
-      sortBy,
-      lowPrice,
-      highPrice,
-    } = query;
+  private async queryFindAll(query: FindAllProductQueryDto): Promise<ListUserProductResponseDto> {
+    const { page, pageSize, categoryIds, search, sortOrder, sortBy, lowPrice, highPrice } = query;
 
     const queryBuilder = this.productRepo
       .createQueryBuilder('p')
@@ -98,11 +85,9 @@ export class ProductService extends BaseService {
       queryBuilder.orderBy('p.createdAt', 'ASC');
     }
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    queryBuilder.addOrderBy('pi.id', 'ASC');
+
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListUserProductResponseDto, {
       data: data.map((item) => ({
@@ -126,10 +111,7 @@ export class ProductService extends BaseService {
       .map((productVariant) => productVariant.stock)
       .reduce((sum, value) => (sum += value));
 
-    const rating = data.reviews.reduce(
-      (prev, currentValue) => (prev += currentValue.rating),
-      0,
-    );
+    const rating = data.reviews.reduce((prev, currentValue) => (prev += currentValue.rating), 0);
 
     return plainToInstance(ProductDetailResponseDto, {
       ...data,
@@ -153,9 +135,7 @@ export class ProductService extends BaseService {
     return queryBuilder;
   }
 
-  async getProductVariantValue(
-    id: string,
-  ): Promise<ProductVariantValueResponseDto[]> {
+  async getProductVariantValue(id: string): Promise<ProductVariantValueResponseDto[]> {
     const data = await this.queryBuilderFindOne(id).getOne();
 
     const record: Record<string, Set<string>> = {};
@@ -175,9 +155,7 @@ export class ProductService extends BaseService {
       variant,
       value:
         variant === 'Size'
-          ? [...Array.from(value)].sort(
-              (a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b),
-            )
+          ? [...Array.from(value)].sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b))
           : [...Array.from(value)].sort((a, b) => a.localeCompare(b)),
     }));
 

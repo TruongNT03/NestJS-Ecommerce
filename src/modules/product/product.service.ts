@@ -85,8 +85,6 @@ export class ProductService extends BaseService {
       queryBuilder.orderBy('p.createdAt', 'ASC');
     }
 
-    queryBuilder.addOrderBy('pi.id', 'ASC');
-
     const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListUserProductResponseDto, {

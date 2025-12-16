@@ -21,9 +21,7 @@ export class ProductDetailResponseDto {
   @Expose()
   @ApiProperty({ type: Number })
   @Transform(
-    ({ obj }) =>
-      obj.productVariants.reduce((min, v) => (v.price < min.price ? v : min))
-        .price,
+    ({ obj }) => obj.productVariants.reduce((min, v) => (v.price < min.price ? v : min)).price,
   )
   price: number;
 
@@ -42,6 +40,7 @@ export class ProductDetailResponseDto {
   @Expose()
   @ApiProperty({ type: [ProductImageDetailResponseDto] })
   @Type(() => ProductImageDetailResponseDto)
+  @Transform(({ value }) => (Array.isArray(value) ? value.sort((a, b) => a.id - b.id) : []))
   productImages: ProductImageDetailResponseDto[];
 
   @Expose()

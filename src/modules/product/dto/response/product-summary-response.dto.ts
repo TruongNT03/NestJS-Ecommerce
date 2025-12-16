@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductImageDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-image-detail-response.dto';
 
@@ -14,5 +14,6 @@ export class ProductSummaryResponseDto {
 
   @Expose()
   @ApiProperty({ type: [ProductImageDetailResponseDto] })
+  @Transform(({ value }) => (Array.isArray(value) ? value.sort((a, b) => a.id - b.id) : []))
   productImages: ProductImageDetailResponseDto[];
 }

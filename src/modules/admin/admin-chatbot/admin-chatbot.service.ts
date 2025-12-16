@@ -4,11 +4,8 @@ import { CreateFaqDto } from './dto/request/create-faq.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatbotData } from 'src/entities/faq.entity';
-import { Brackets, Repository } from 'typeorm';
-import {
-  AdminListFaqQueryDto,
-  ListFaqSortField,
-} from './dto/request/list-faq-query.dto';
+import { Brackets, DataSource, Repository } from 'typeorm';
+import { AdminListFaqQueryDto, ListFaqSortField } from './dto/request/list-faq-query.dto';
 import { AdminListFaqResponseDto } from './dto/response/admin-list-faq-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { chatbotServiceConfiguration } from 'src/config';
@@ -35,9 +32,8 @@ export class AdminChatbotService extends BaseService {
     @InjectRepository(ChatBotTrainingLog)
     private readonly chatbotTrainingLogRepo: Repository<ChatBotTrainingLog>,
     @Inject(chatbotServiceConfiguration.KEY)
-    private readonly chatbotServiceConfig: ConfigType<
-      typeof chatbotServiceConfiguration
-    >,
+    private readonly chatbotServiceConfig: ConfigType<typeof chatbotServiceConfiguration>,
+    private readonly dataSource: DataSource,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
   ) {
@@ -100,11 +96,7 @@ export class AdminChatbotService extends BaseService {
       queryBuilder.orderBy('chatbot.updatedAt', 'DESC');
     }
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(AdminListFaqResponseDto, {
       data,
@@ -178,11 +170,7 @@ export class AdminChatbotService extends BaseService {
   async downloadTemplate(res: Response) {
     const workbook = new exceljs.Workbook();
     const sheet = workbook.addWorksheet('Sheet 1');
-    sheet.addRow([
-      FaqTemplateHeader.QUESTION,
-      FaqTemplateHeader.ANSWER,
-      FaqTemplateHeader.TYPE,
-    ]);
+    sheet.addRow([FaqTemplateHeader.QUESTION, FaqTemplateHeader.ANSWER, FaqTemplateHeader.TYPE]);
 
     const headerRow = sheet.getRow(1);
 
@@ -258,16 +246,28 @@ export class AdminChatbotService extends BaseService {
       }
     });
 
-    await Promise.all(
-      data.map((faq) => {
-        this.chatbotDataRepo.save({
-          question: faq.question,
-          answer: faq.answer,
-          type: faq.type,
-        });
-      }),
-    );
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    return this.successResponse();
+    try {
+      await Promise.all(
+        data.map((faq) => {
+          this.chatbotDataRepo.save({
+            question: faq.question,
+            answer: faq.answer,
+            type: faq.type,
+          });
+        }),
+      );
+      await queryRunner.commitTransaction();
+
+      return this.successResponse();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new ServerException({ ...ERROR_RESPONSE.BAD_REQUEST });
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

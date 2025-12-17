@@ -31,9 +31,7 @@ export class AdminOrderService extends BaseService {
     super();
   }
 
-  async findAll(
-    dto: AdminListOrderQueryDto,
-  ): Promise<AdminListOrderResponseDto> {
+  async findAll(dto: AdminListOrderQueryDto): Promise<AdminListOrderResponseDto> {
     const { page, pageSize, search, orderStatusFilter } = dto;
 
     const queryBuilder = this.orderRepo
@@ -58,11 +56,7 @@ export class AdminOrderService extends BaseService {
       });
     }
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(AdminListOrderResponseDto, {
       data: data.map((order) => ({
@@ -89,6 +83,7 @@ export class AdminOrderService extends BaseService {
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.orderItems', 'orderItems')
       .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.voucher', 'voucher')
       .leftJoinAndSelect('order.address', 'address')
       .leftJoinAndSelect('orderItems.productVariant', 'productVariant')
       .leftJoinAndSelect('productVariant.variantValues', 'variantValues')
@@ -101,7 +96,8 @@ export class AdminOrderService extends BaseService {
 
     return plainToInstance(AdminOrderDetailResponseDto, {
       ...order,
-      amount: this.amountCalculator(order),
+      // amount: this.amountCalculator(order),
+      amount: order.finalPrice || this.amountCalculator(order),
       orderItems: order.orderItems.map((orderItem) => ({
         ...orderItem,
         product: orderItem.productVariant.product,
@@ -109,10 +105,7 @@ export class AdminOrderService extends BaseService {
     });
   }
 
-  async updateOrderStatus(
-    id: string,
-    dto: AdminUpdateOrderStatusDto,
-  ): Promise<SuccessResponseDto> {
+  async updateOrderStatus(id: string, dto: AdminUpdateOrderStatusDto): Promise<SuccessResponseDto> {
     const { status } = dto;
 
     const order = await this.orderRepo.findOneBy({ id });
@@ -124,12 +117,7 @@ export class AdminOrderService extends BaseService {
     }
 
     await this.orderRepo.update({ id }, { status });
-    const notification = this.createOrderNotification(
-      order.userId,
-      order.status,
-      status,
-      id,
-    );
+    const notification = this.createOrderNotification(order.userId, order.status, status, id);
     await this.notificationService.create(notification);
 
     return this.successResponse();

@@ -19,6 +19,8 @@ import { UserGender } from 'src/modules/auth/dto/request/update-profile.dto';
 import { Review } from './review.entity';
 import { LoginType } from 'src/common/enum/login-type.enum';
 import { UserMetaData } from 'src/common/dto/user-meta-data.dto';
+import { UserVoucher } from './user-voucher.entity';
+import { Voucher } from './voucher.entity';
 
 export const TableName = 'users';
 
@@ -82,4 +84,7 @@ export class UserEntity extends AbstractEntity<UserEntity> {
 
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
+
+  @OneToMany(() => UserVoucher, (userVoucher) => userVoucher.user)
+  vouchers: Voucher[];
 }

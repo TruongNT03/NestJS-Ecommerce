@@ -1,6 +1,6 @@
 import { IsString, Validate } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { Variant } from 'src/entities/variant.entity';
 
 export class CreateVariantDto {

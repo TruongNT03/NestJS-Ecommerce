@@ -17,7 +17,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { UpdateProductImageDto } from './update-product-image.dto';
 import { Categories } from 'src/entities/categories.entity';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 
 export class UpdateProductDto {
   @ApiProperty({ enum: ProductStatus, example: ProductStatus.UNPUBLISHED })

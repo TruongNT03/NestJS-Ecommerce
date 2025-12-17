@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsStrongPassword, Validate } from 'class-validator';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { UserEntity } from 'src/entities/user.entity';
 
 export class RegisterDto {

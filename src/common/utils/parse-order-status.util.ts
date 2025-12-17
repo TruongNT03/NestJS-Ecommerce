@@ -6,6 +6,7 @@ export const parseOrderStatus = (status: OrderStatus) => {
     [OrderStatus.CONFIRMED]: 'đã xác nhận',
     [OrderStatus.SHIPPING]: 'vận chuyển',
     [OrderStatus.COMPLETED]: 'hoàn thành',
+    [OrderStatus.CANCEL]: 'hủy',
   };
 
   return orderStatusMap[status];

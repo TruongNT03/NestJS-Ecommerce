@@ -1,13 +1,6 @@
 import { QueryDto, SortOrder } from 'src/common/dto/query.dto';
-import {
-  IsArray,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Validate,
-} from 'class-validator';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, Validate } from 'class-validator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { Categories } from 'src/entities/categories.entity';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';

@@ -13,7 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { Product } from 'src/entities/product.entity';
 import { Categories } from 'src/entities/categories.entity';
 import { Type } from 'class-transformer';

@@ -1,7 +1,7 @@
 import { QueryDto } from 'src/common/dto/query.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString, Validate } from 'class-validator';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { Variant } from 'src/entities/variant.entity';
 import { Type } from 'class-transformer';
 

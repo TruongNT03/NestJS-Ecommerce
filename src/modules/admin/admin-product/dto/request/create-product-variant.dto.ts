@@ -1,13 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsArray,
-  IsNumber,
-  IsString,
-  Validate,
-} from 'class-validator';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { ArrayNotEmpty, ArrayUnique, IsArray, IsNumber, IsString, Validate } from 'class-validator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { ProductVariant } from 'src/entities/product-variant.entity';
 import { VariantValue } from 'src/entities/variant-value.entity';
 

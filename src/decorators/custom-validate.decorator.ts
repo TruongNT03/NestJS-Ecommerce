@@ -7,7 +7,7 @@ import { AppDataSource } from 'datasourceConfig';
 import { EntityTarget } from 'typeorm';
 
 /**
- * Guildance:
+ * Guidance:
  *
  * @Validate(Exist<Entity>, [EntityTarget, FieldToCheck, isAlreadyExistCheck, withDeleted])
  *
@@ -21,10 +21,7 @@ import { EntityTarget } from 'typeorm';
 
 @ValidatorConstraint({ name: 'Exist', async: false })
 export class Exist<T> implements ValidatorConstraintInterface {
-  async validate(
-    value: any,
-    validationArguments?: ValidationArguments,
-  ): Promise<boolean> {
+  async validate(value: any, validationArguments?: ValidationArguments): Promise<boolean> {
     const args = validationArguments.constraints;
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();

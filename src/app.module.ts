@@ -35,6 +35,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ChatSharedModule } from './modules/chat/chat-shared/chat-shared.module';
+import { VoucherModule } from './modules/voucher/voucher.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { ChatSharedModule } from './modules/chat/chat-shared/chat-shared.module'
     ChatbotModule,
     ReviewModule,
     ChatSharedModule,
+    VoucherModule,
   ],
   controllers: [],
   providers: [

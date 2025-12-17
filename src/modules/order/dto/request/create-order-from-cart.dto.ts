@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { ArrayUnique, IsArray, IsEnum, IsUUID } from 'class-validator';
+import { ArrayUnique, IsArray, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { PaymentType } from 'src/common/enum/payment-type.enum';
 
 export class CreateOrderFromCartDto {
@@ -18,4 +18,9 @@ export class CreateOrderFromCartDto {
   @ApiProperty({ enum: PaymentType })
   @IsEnum(PaymentType)
   paymentType: PaymentType;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsUUID()
+  voucherId?: string;
 }

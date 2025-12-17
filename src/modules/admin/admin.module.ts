@@ -6,6 +6,7 @@ import { AdminChatModule } from 'src/modules/admin/admin-chat/admin-chat.module'
 import { AdminOrderModule } from './admin-order/admin-order.module';
 import { AdminChatbotModule } from './admin-chatbot/admin-chatbot.module';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
+import { AdminVoucherModule } from './admin-voucher/admin-voucher.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
     AdminOrderModule,
     AdminChatbotModule,
     AdminDashboardModule,
+    AdminVoucherModule,
   ],
 })
 export class AdminModule {}

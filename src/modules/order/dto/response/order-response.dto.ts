@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import { OrderStatus } from 'src/common/enum/order-status.enum';
 import { AddressResponseDto } from 'src/modules/address/dto/response/address-response.dto';
 import { OrderItemResponseDto } from './order-item-response.dto';
+import { VoucherResponseDto } from 'src/modules/voucher/dto/response/voucher-response.dto';
 
 @Exclude()
 export class OrderResponseDto {
@@ -25,6 +26,11 @@ export class OrderResponseDto {
   @Expose()
   @ApiProperty({ type: Number })
   amount: number;
+
+  @Expose()
+  @ApiProperty({ type: VoucherResponseDto })
+  @Type(() => VoucherResponseDto)
+  voucher: VoucherResponseDto;
 
   @Expose()
   @ApiProperty({ type: Date })

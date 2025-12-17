@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUrl, Validate } from 'class-validator';
-import { Exist } from 'src/decorators/custome-validate.decorator';
+import { Exist } from 'src/decorators/custom-validate.decorator';
 import { Categories } from 'src/entities/categories.entity';
 
 export class SaveCategoryDto {

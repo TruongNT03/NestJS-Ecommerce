@@ -74,7 +74,13 @@ export class AuthController {
     return await this.authService.login(body);
   }
 
-  @Role([RoleType.USER, RoleType.ADMIN])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'LOGOUT ACCOUNT' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
@@ -83,7 +89,13 @@ export class AuthController {
     return await this.authService.logout(user);
   }
 
-  @Role([RoleType.USER, RoleType.ADMIN])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'GET MY PROFILE' })
   @ApiResponse({ status: 200, type: UserResponseDto })
@@ -92,7 +104,13 @@ export class AuthController {
     return await this.authService.getProfile(user.id);
   }
 
-  @Role([RoleType.USER, RoleType.ADMIN])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @Public()
   @UseGuards(AuthGuard('refresh'))
@@ -122,7 +140,13 @@ export class AuthController {
     return await this.authService.verifyForgotPassword(token, body);
   }
 
-  @Role([RoleType.USER, RoleType.ADMIN])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'CHANGE PASSWORD' })
   @ApiResponse({ status: 201, type: ChangePasswordResponseDto })
@@ -134,7 +158,13 @@ export class AuthController {
     return await this.authService.changePassword(user, body);
   }
 
-  @Role([RoleType.USER, RoleType.ADMIN])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'UPLOAD AVATAR' })
   @ApiResponse({ status: 200, type: UploadResponseDto })
@@ -143,7 +173,13 @@ export class AuthController {
     return await this.authService.upload(body);
   }
 
-  @Role([RoleType.ADMIN, RoleType.USER])
+  @Role([
+    RoleType.ADMIN,
+    RoleType.USER,
+    RoleType.ORDER_MANAGER,
+    RoleType.PRODUCT_MANAGER,
+    RoleType.TECHNICIAN,
+  ])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'UPDATE PROFILE' })
   @ApiResponse({ status: 201, type: SuccessResponseDto })

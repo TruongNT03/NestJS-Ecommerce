@@ -28,14 +28,17 @@ import { AdminListFaqQueryDto } from './dto/request/list-faq-query.dto';
 import { AdminFaqSummaryResponseDto } from './dto/response/admin-faq-summary-response.dto';
 import { Response, Express } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ActionPermission, RolePermission } from 'src/decorators/role-permission.decorator';
+import { ModuleEnum } from 'src/common/enum/module.enum';
 
 @ApiTags('[ADMIN] CHATBOT')
 @ApiBearerAuth()
-@Role([RoleType.ADMIN])
+@Role([RoleType.ADMIN, RoleType.ORDER_MANAGER, RoleType.PRODUCT_MANAGER, RoleType.TECHNICIAN])
 @Controller('admin-chatbot')
 export class AdminChatbotController {
   constructor(private readonly adminChatbotService: AdminChatbotService) {}
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.CREATE })
   @ApiOperation({ summary: '[ADMIN] CREATE FAQ' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Post()
@@ -43,15 +46,15 @@ export class AdminChatbotController {
     return await this.adminChatbotService.create(body);
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.READ })
   @ApiOperation({ summary: '[ADMIN] FIND ALL FAQ' })
   @ApiResponse({ status: 200, type: AdminListFaqResponseDto })
   @Get()
-  async findAll(
-    @Query() query: AdminListFaqQueryDto,
-  ): Promise<AdminListFaqResponseDto> {
+  async findAll(@Query() query: AdminListFaqQueryDto): Promise<AdminListFaqResponseDto> {
     return await this.adminChatbotService.findAll(query);
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.UPDATE })
   @ApiOperation({ summary: '[ADMIN] RETRAINING MODEL' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Post('retraining')
@@ -59,6 +62,7 @@ export class AdminChatbotController {
     return await this.adminChatbotService.retraining();
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.DELETE })
   @ApiOperation({ summary: '[ADMIN] DELETE FAQ' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Delete(':id')
@@ -66,16 +70,15 @@ export class AdminChatbotController {
     return await this.adminChatbotService.delete(id);
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.UPDATE })
   @ApiOperation({ summary: '[ADMIN] UPDATE FAQ' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Put(':id')
-  async update(
-    @Query('id') id: number,
-    @Body() body: CreateFaqDto,
-  ): Promise<SuccessResponseDto> {
+  async update(@Query('id') id: number, @Body() body: CreateFaqDto): Promise<SuccessResponseDto> {
     return await this.adminChatbotService.update(id, body);
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.READ })
   @ApiOperation({ summary: '[ADMIN] GET FAQ SUMMARY' })
   @ApiResponse({ status: 200, type: AdminFaqSummaryResponseDto })
   @Get('summary')
@@ -83,6 +86,7 @@ export class AdminChatbotController {
     return await this.adminChatbotService.getSummary();
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.CREATE })
   @ApiOperation({ summary: '[ADMIN] DOWNLOAD EXCEL FILE TEMPLATE' })
   @ApiResponse({ status: 200 })
   @Get('download-template')
@@ -90,6 +94,7 @@ export class AdminChatbotController {
     return await this.adminChatbotService.downloadTemplate(res);
   }
 
+  @RolePermission({ module: ModuleEnum.CHATBOT, permission: ActionPermission.CREATE })
   @ApiOperation({ summary: '[ADMIN] UPLOAD FAQ' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @UseInterceptors(FileInterceptor('file'))
@@ -106,9 +111,7 @@ export class AdminChatbotController {
     },
   })
   @Post('upload-faq')
-  async uploadFaqFile(
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<SuccessResponseDto> {
+  async uploadFaqFile(@UploadedFile() file: Express.Multer.File): Promise<SuccessResponseDto> {
     return await this.adminChatbotService.uploadFaqFile(file);
   }
 }

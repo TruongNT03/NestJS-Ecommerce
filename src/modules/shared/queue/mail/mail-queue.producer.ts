@@ -10,4 +10,8 @@ export class MailQueueProducer {
   async sendOTP(OTP: string, mail: string) {
     await this.queue.add(MAIL_QUEUE.JOB_NAME.SEND_OTP, { OTP, mail }, { delay: 5000 });
   }
+
+  async sendAccount(password: string, mail: string) {
+    await this.queue.add(MAIL_QUEUE.JOB_NAME.SEND_ACCOUNT, { password, mail }, { delay: 5000 });
+  }
 }

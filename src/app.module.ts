@@ -29,13 +29,14 @@ import { AddressModule } from './modules/address/address.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { PaymentWebhookModule } from './modules/webhooks/payment/payment-webhook.module';
 import { getWinstonConfig } from './common/utils/logger-transport.util';
-import { AdminChatModule } from './modules/admin/admin-chat/admin-chat.module';
 import { AdminModule } from 'src/modules/admin/admin.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ChatSharedModule } from './modules/chat/chat-shared/chat-shared.module';
 import { VoucherModule } from './modules/voucher/voucher.module';
+import { RolePermissionGuard } from './guard/role-permission.guard';
+import { RolePermissionModule } from './modules/role-permission/role-permission.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { VoucherModule } from './modules/voucher/voucher.module';
     ReviewModule,
     ChatSharedModule,
     VoucherModule,
+    RolePermissionModule,
   ],
   controllers: [],
   providers: [
@@ -97,6 +99,10 @@ import { VoucherModule } from './modules/voucher/voucher.module';
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolePermissionGuard,
     },
   ],
 })

@@ -11,7 +11,13 @@ import { TotalUnreadNotificationResponseDto } from './dto/response/total-unread-
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 
 @ApiTags('[USER/ADMIN] NOTIFICATION')
-@Role([RoleType.ADMIN, RoleType.USER])
+@Role([
+  RoleType.ADMIN,
+  RoleType.USER,
+  RoleType.ORDER_MANAGER,
+  RoleType.PRODUCT_MANAGER,
+  RoleType.TECHNICIAN,
+])
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
@@ -38,9 +44,7 @@ export class NotificationController {
   @ApiOperation({ summary: '[USER/ADMIN] MARK ALL READ' })
   @ApiResponse({ status: 200, type: SuccessResponseDto })
   @Get('read')
-  async markAllRead(
-    @User() user: UserRequestPayload,
-  ): Promise<SuccessResponseDto> {
+  async markAllRead(@User() user: UserRequestPayload): Promise<SuccessResponseDto> {
     return await this.notificationService.markAllRead(user);
   }
 

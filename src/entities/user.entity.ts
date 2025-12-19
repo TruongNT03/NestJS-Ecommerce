@@ -2,8 +2,10 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -21,6 +23,7 @@ import { LoginType } from 'src/common/enum/login-type.enum';
 import { UserMetaData } from 'src/common/dto/user-meta-data.dto';
 import { UserVoucher } from './user-voucher.entity';
 import { Voucher } from './voucher.entity';
+import { Location } from './location.entity';
 
 export const TableName = 'users';
 
@@ -53,6 +56,9 @@ export class UserEntity extends AbstractEntity<UserEntity> {
 
   @Column({ type: 'jsonb' })
   metaData: UserMetaData;
+
+  @Column()
+  locationId: string;
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification;
@@ -87,4 +93,8 @@ export class UserEntity extends AbstractEntity<UserEntity> {
 
   @OneToMany(() => UserVoucher, (userVoucher) => userVoucher.user)
   vouchers: Voucher[];
+
+  @ManyToOne(() => Location, (location) => location.users)
+  @JoinColumn({ name: 'location_id', referencedColumnName: 'id' })
+  location: Location;
 }

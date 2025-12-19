@@ -7,6 +7,8 @@ import { AdminOrderModule } from './admin-order/admin-order.module';
 import { AdminChatbotModule } from './admin-chatbot/admin-chatbot.module';
 import { AdminDashboardModule } from './admin-dashboard/admin-dashboard.module';
 import { AdminVoucherModule } from './admin-voucher/admin-voucher.module';
+import { AdminRolePermissionModule } from './admin-role-permission/admin-role-permission.module';
+import { AdminLocationModule } from './admin-location/admin-location.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { AdminVoucherModule } from './admin-voucher/admin-voucher.module';
     AdminChatbotModule,
     AdminDashboardModule,
     AdminVoucherModule,
+    AdminRolePermissionModule,
+    AdminLocationModule,
   ],
 })
 export class AdminModule {}

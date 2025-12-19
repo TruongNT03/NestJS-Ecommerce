@@ -1,11 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { User } from 'src/decorators/user.decorator';
 import { UserRequestPayload } from '../auth/auth.interface';
@@ -20,25 +15,27 @@ import { ConversationResponseDto } from 'src/modules/chat/dto/response/conversat
 @Controller('chat')
 @ApiTags('CHAT')
 @ApiBearerAuth()
-@Role([RoleType.ADMIN, RoleType.USER])
+@Role([
+  RoleType.ADMIN,
+  RoleType.USER,
+  RoleType.ORDER_MANAGER,
+  RoleType.PRODUCT_MANAGER,
+  RoleType.TECHNICIAN,
+])
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @ApiOperation({ summary: 'CREATE CONVERSATION' })
   @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post('conversation')
-  async createConversation(
-    @User() user: UserRequestPayload,
-  ): Promise<SuccessResponseDto> {
+  async createConversation(@User() user: UserRequestPayload): Promise<SuccessResponseDto> {
     return await this.chatService.createConversation(user);
   }
 
   @ApiOperation({ summary: '[USER] GET CONVERSATION' })
   @ApiResponse({ status: 200, type: ConversationResponseDto })
   @Get('conversation')
-  async getConversation(
-    @User() user: UserRequestPayload,
-  ): Promise<ConversationResponseDto> {
+  async getConversation(@User() user: UserRequestPayload): Promise<ConversationResponseDto> {
     return await this.chatService.getConversation(user);
   }
 
@@ -71,10 +68,7 @@ export class ChatController {
   @ApiOperation({ summary: 'CREATE MESSAGE' })
   @ApiResponse({ status: 200 })
   @Post('message')
-  async createMessage(
-    @Body() body: CreateMessageDto,
-    @User() user: UserRequestPayload,
-  ) {
+  async createMessage(@Body() body: CreateMessageDto, @User() user: UserRequestPayload) {
     return await this.chatService.createMessage(body, user);
   }
 }

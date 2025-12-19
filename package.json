@@ -58,6 +58,7 @@
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.1",
     "exceljs": "^4.4.0",
+    "generate-password": "^1.7.1",
     "ioredis": "^5.7.0",
     "lodash": "^4.17.21",
     "nest-commander": "^3.19.1",

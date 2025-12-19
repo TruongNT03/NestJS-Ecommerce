@@ -7,14 +7,17 @@ import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { AdminCreateVoucherDto } from './dto/request/admin-create-voucher.dto';
 import { AdminListVoucherQueryDto } from './dto/request/admin-list-voucher-query.dto';
 import { AdminListVoucherResponseDto } from './dto/response/admin-list-voucher-response.dto';
+import { ActionPermission, RolePermission } from 'src/decorators/role-permission.decorator';
+import { ModuleEnum } from 'src/common/enum/module.enum';
 
 @ApiTags('ADMIN VOUCHER')
 @ApiBearerAuth()
-@Role([RoleType.ADMIN])
+@Role([RoleType.ADMIN, RoleType.ORDER_MANAGER, RoleType.PRODUCT_MANAGER, RoleType.TECHNICIAN])
 @Controller('admin-voucher')
 export class AdminVoucherController {
   constructor(private readonly adminVoucherService: AdminVoucherService) {}
 
+  @RolePermission({ module: ModuleEnum.VOUCHER, permission: ActionPermission.CREATE })
   @ApiOperation({ summary: '[ADMIN] CREATE VOUCHER' })
   @ApiResponse({ status: 201, type: SuccessResponseDto })
   @Post()
@@ -22,6 +25,7 @@ export class AdminVoucherController {
     return await this.adminVoucherService.create(body);
   }
 
+  @RolePermission({ module: ModuleEnum.VOUCHER, permission: ActionPermission.READ })
   @ApiOperation({ summary: '[ADMIN] FIND ALL VOUCHER' })
   @ApiResponse({ status: 200, type: AdminListVoucherResponseDto })
   @Get()

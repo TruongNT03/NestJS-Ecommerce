@@ -1,11 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { AdminChatService } from './admin-chat.service';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { User } from 'src/decorators/user.decorator';
@@ -18,7 +13,7 @@ import { CreateMessageDto } from 'src/modules/chat/dto/request/create-message.dt
 
 @ApiTags('[ADMIN] CHAT')
 @ApiBearerAuth()
-@Role([RoleType.ADMIN])
+@Role([RoleType.ADMIN, RoleType.ORDER_MANAGER, RoleType.PRODUCT_MANAGER, RoleType.TECHNICIAN])
 @Controller('admin-chat')
 export class AdminChatController {
   constructor(private readonly adminChatService: AdminChatService) {}
@@ -46,10 +41,7 @@ export class AdminChatController {
   @ApiOperation({ summary: '[ADMIN] CREATE MESSAGE' })
   @ApiResponse({ status: 200 })
   @Post('message')
-  async createMessage(
-    @Body() body: CreateMessageDto,
-    @User() user: UserRequestPayload,
-  ) {
+  async createMessage(@Body() body: CreateMessageDto, @User() user: UserRequestPayload) {
     return await this.adminChatService.createMessage(body, user);
   }
 }

@@ -1,11 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { AdminDashboardService } from './admin-dashboard.service';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/decorators/role.decorator';
 import { RoleType } from 'src/common/enum/role.enum';
 import { AdminDashboardStatisticResponseDto } from './dto/response/admin-dashboard-statistic-response.dto';
@@ -14,7 +9,7 @@ import { AdminRevenueResponseDto } from './dto/response/admin-revenue-response.d
 import { AdminDashboardPendingOrderResponseDto } from './dto/response/admin-dashboard-pending-order-response.dto';
 
 @ApiTags('ADMIN DASHBOARD')
-@Role([RoleType.ADMIN])
+@Role([RoleType.ADMIN, RoleType.ORDER_MANAGER, RoleType.PRODUCT_MANAGER, RoleType.TECHNICIAN])
 @ApiBearerAuth()
 @Controller('admin-dashboard')
 export class AdminDashboardController {

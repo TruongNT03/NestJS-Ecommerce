@@ -51,4 +51,9 @@ export const ERROR_RESPONSE = {
     errorCode: 'not_found',
     message: 'Resource not found',
   },
+  ACCESS_DENIED: {
+    statusCode: HttpStatus.FORBIDDEN,
+    errorCode: 'access_denied',
+    message: 'Access Denied',
+  },
 };

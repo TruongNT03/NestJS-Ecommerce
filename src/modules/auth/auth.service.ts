@@ -52,6 +52,8 @@ import { RoleEntity } from 'src/entities/role.entity';
 import { MailQueueProducer } from '../shared/queue/mail/mail-queue.producer';
 import { Request, Response } from 'express';
 import { appConfiguration } from 'src/config';
+import * as generatePassword from 'generate-password';
+import { AdminLocationResponseDto } from '../admin/admin-location/dto/response/admin-location-response.dto';
 
 @Injectable()
 export class AuthService extends BaseService {
@@ -170,7 +172,7 @@ export class AuthService extends BaseService {
     const { email, password } = dto;
     const user = await this.userRepo.findOne({
       where: { email, loginType: LoginType.DEFAULT },
-      relations: ['roles'],
+      relations: ['roles', 'location'],
     });
     if (!user) {
       throw new ServerException(ERROR_RESPONSE.INCREDENTIAL);
@@ -196,6 +198,7 @@ export class AuthService extends BaseService {
       jti: jti,
       roles: user.roles.map((role) => role.name) as RoleType[],
       loginType: user.loginType,
+      location: plainToInstance(AdminLocationResponseDto, user.location),
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -296,7 +299,14 @@ export class AuthService extends BaseService {
     if (OTP !== redisValue.OTP) {
       throw new ServerException(ERROR_RESPONSE.OTP_INVALID);
     }
-    const newPassword = passwordGenerate(8);
+    const newPassword = generatePassword.generate({
+      length: 8,
+      lowercase: true,
+      numbers: true,
+      strict: true,
+      symbols: true,
+      uppercase: true,
+    });
     const hashPassword = hashingPassword(newPassword);
     const user = await this.userRepo.findOneBy({ id: redisValue.userId });
     if (!user) {
@@ -344,7 +354,7 @@ export class AuthService extends BaseService {
     await this.redisService.deleteByPattern(userPatternKey);
 
     return await this.manageUserToken(
-      await this.userRepo.findOne({ where: { id }, relations: ['roles'] }),
+      await this.userRepo.findOne({ where: { id }, relations: ['roles', 'location'] }),
     );
   }
 

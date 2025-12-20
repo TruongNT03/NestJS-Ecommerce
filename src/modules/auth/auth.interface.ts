@@ -1,5 +1,6 @@
 import { LoginType } from 'src/common/enum/login-type.enum';
 import { RoleType } from 'src/common/enum/role.enum';
+import { AdminLocationResponseDto } from '../admin/admin-location/dto/response/admin-location-response.dto';
 
 export interface JwtPayload {
   id: string;
@@ -8,6 +9,7 @@ export interface JwtPayload {
   loginType: LoginType;
   jti: string;
   type: TokenType;
+  location?: AdminLocationResponseDto;
 }
 
 export interface UserRequestPayload {
@@ -16,6 +18,7 @@ export interface UserRequestPayload {
   roles?: RoleType[];
   loginType: LoginType;
   jti: string;
+  location?: AdminLocationResponseDto;
 }
 
 export enum TokenType {

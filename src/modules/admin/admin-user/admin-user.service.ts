@@ -3,7 +3,11 @@ import { UserListResponseDto } from './response/list-user-response.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { Brackets, In, Repository } from 'typeorm';
-import { AdminUserQueryDto, AdminUserQuerySortField } from './request/admin-user-query.dto';
+import {
+  AdminUserQueryDto,
+  AdminUserQueryRoleType,
+  AdminUserQuerySortField,
+} from './request/admin-user-query.dto';
 import { BaseService } from 'src/base.service';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from 'src/modules/user/dto/response/user-response.dto';
@@ -14,6 +18,7 @@ import { hashingPassword } from 'src/common/utils/hash.util';
 import { MailQueueProducer } from 'src/modules/shared/queue/mail/mail-queue.producer';
 import { RoleEntity } from 'src/entities/role.entity';
 import { LoginType } from 'src/common/enum/login-type.enum';
+import { RoleType } from 'src/common/enum/role.enum';
 
 @Injectable()
 export class AdminUserService extends BaseService {
@@ -31,7 +36,7 @@ export class AdminUserService extends BaseService {
   }
 
   private async queryBuilderGetAll(query: AdminUserQueryDto): Promise<UserListResponseDto> {
-    const { page, pageSize, search, sortBy, sortOrder } = query;
+    const { page, pageSize, search, sortBy, sortOrder, roleType } = query;
     const queryBuilder = this.userRepo.createQueryBuilder('u').leftJoinAndSelect('u.roles', 'ur');
 
     if (search) {
@@ -49,6 +54,23 @@ export class AdminUserService extends BaseService {
             }),
         ),
       );
+    }
+
+    if (roleType) {
+      if (roleType === AdminUserQueryRoleType.ADMIN) {
+        queryBuilder.andWhere('ur.name IN (:...roles)', {
+          roles: [
+            RoleType.ADMIN,
+            RoleType.ORDER_MANAGER,
+            RoleType.TECHNICIAN,
+            RoleType.PRODUCT_MANAGER,
+          ],
+        });
+      } else if (roleType == AdminUserQueryRoleType.USER) {
+        queryBuilder.andWhere('ur.name = :userRole', { userRole: RoleType.USER });
+      }
+    } else {
+      queryBuilder.andWhere('ur.name = :userRole', { userRole: RoleType.USER });
     }
 
     const sortByFieldMap: Record<AdminUserQuerySortField, string> = {

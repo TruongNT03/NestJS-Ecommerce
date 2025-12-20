@@ -10,11 +10,21 @@ export enum AdminUserQuerySortField {
   CREATED_AT = 'createdAt',
 }
 
+export enum AdminUserQueryRoleType {
+  ADMIN = 'admin',
+  USER = 'user',
+}
+
 export class AdminUserQueryDto extends QueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ enum: AdminUserQueryRoleType })
+  @IsOptional()
+  @IsEnum(AdminUserQueryRoleType)
+  roleType?: AdminUserQueryRoleType;
 
   @ApiPropertyOptional({ enum: AdminUserQuerySortField })
   @IsOptional()

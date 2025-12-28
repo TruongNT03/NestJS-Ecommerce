@@ -162,7 +162,7 @@ export class CartService extends BaseService {
 
   async deleteCartItem(id: string): Promise<SuccessResponseDto> {
     const cartItem = await this.findOneCartItem(id);
-    await this.cartItemRepo.delete(cartItem);
+    await this.cartItemRepo.delete({ id: cartItem.id });
     return this.successResponse();
   }
 

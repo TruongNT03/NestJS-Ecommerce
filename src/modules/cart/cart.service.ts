@@ -97,7 +97,7 @@ export class CartService extends BaseService {
         .where('cart.userId = :userId', { userId: user.id })
         .orderBy('cartItem.id', 'DESC')
         .addOrderBy('cartItem.updatedAt', 'DESC')
-        .limit(5)
+        .take(5)
         .getMany(),
 
       this.cartItemRepo

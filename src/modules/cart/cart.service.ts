@@ -58,12 +58,12 @@ export class CartService extends BaseService {
         cartId: cart.id,
         quantity,
       });
+    } else {
+      await this.cartItemRepo.update(
+        { id: existCartItem.id },
+        { quantity: existCartItem.quantity + quantity },
+      );
     }
-
-    await this.cartItemRepo.update(
-      { id: existCartItem.id },
-      { quantity: existCartItem.quantity + quantity },
-    );
 
     return {
       success: true,

@@ -14,7 +14,7 @@ export enum AdminProductSortField {
 }
 
 export class ListProductQueryDto extends QueryDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: [Number] })
   @IsOptional()
   @IsArray()
   @Type(() => Number)

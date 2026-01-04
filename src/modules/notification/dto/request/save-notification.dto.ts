@@ -1,5 +1,6 @@
 import { IsEnum, IsJSON, IsOptional, IsString, IsUUID } from 'class-validator';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
 import { RoleType } from 'src/common/enum/role.enum';
 
 export class SaveNotificationDto {
@@ -15,6 +16,12 @@ export class SaveNotificationDto {
 
   @IsString()
   triggerBy: string;
+
+  @IsEnum(NotificationType)
+  type: NotificationType;
+
+  @IsEnum(NotificationDuration)
+  duration: NotificationDuration;
 
   @IsEnum(NotificationNavigateTo)
   navigateTo: NotificationNavigateTo;

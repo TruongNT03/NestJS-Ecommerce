@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from './user.entity';
 import { AbstractEntity } from './abstract.entity';
 import { RoleType } from '../common/enum/role.enum';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
 
 export const TableName = 'notifications';
 
@@ -24,6 +25,12 @@ export class Notification extends AbstractEntity<Notification> {
 
   @Column()
   navigateTo: string;
+
+  @Column()
+  type: NotificationType;
+
+  @Column()
+  duration: NotificationDuration;
 
   @Column()
   isRead: boolean;

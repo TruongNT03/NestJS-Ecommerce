@@ -26,6 +26,7 @@ import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to
 import { MessageResponseDto } from './dto/response/message-response.dto';
 import { Socket } from 'socket.io';
 import { ChatSharedGateway } from './chat-shared/chat-shared.gateway';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
 
 @Injectable()
 export class ChatService extends BaseService {
@@ -210,6 +211,8 @@ export class ChatService extends BaseService {
       (userConversation) => ({
         alertTo: RoleType.ADMIN,
         content: `Bạn có tin nhắn mới.`,
+        duration: NotificationDuration.ONE_OFF,
+        type: NotificationType.MESSAGE,
         navigateTo: NotificationNavigateTo.CONVERSATION_DETAIL,
         title: `Tin nhắn mới.`,
         triggerBy: `ChatService.createMessage`,

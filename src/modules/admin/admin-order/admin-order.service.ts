@@ -21,6 +21,7 @@ import { UserRequestPayload } from 'src/modules/auth/auth.interface';
 import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
 import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
 import { AdminOrderStaticResponseDto } from './dto/response/admin-order-static-response.dto';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
 
 @Injectable()
 export class AdminOrderService extends BaseService {
@@ -141,6 +142,8 @@ export class AdminOrderService extends BaseService {
     return {
       content: `Đơn hàng của bạn đã được chuyển từ trạng thái ${parseOrderStatus(preStatus)} sang trạng thái ${parseOrderStatus(postStatus)}.`,
       navigateTo: NotificationNavigateTo.ORDER_DETAIL_PAGE,
+      duration: NotificationDuration.FOREVER,
+      type: NotificationType.ORDER,
       title: `Cập nhập trạng thái đơn hàng`,
       triggerBy: `Cập nhập trạng thái order`,
       meta: {

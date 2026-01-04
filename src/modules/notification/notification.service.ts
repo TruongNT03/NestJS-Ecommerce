@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { NotificationGateway } from 'src/modules/notification/notification.gateway';
 import { SaveNotificationDto } from 'src/modules/notification/dto/request/save-notification.dto';
 import { RoleType } from 'src/common/enum/role.enum';
@@ -13,6 +13,7 @@ import { ListNotificationResponseDto } from './dto/response/list-notification-re
 import { plainToInstance } from 'class-transformer';
 import { TotalUnreadNotificationResponseDto } from './dto/response/total-unread-response.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
+import { NotificationDuration } from 'src/common/enum/notification.enum';
 
 @Injectable()
 export class NotificationService extends BaseService {
@@ -69,13 +70,24 @@ export class NotificationService extends BaseService {
     const queryBuilder = this.notificationRepo
       .createQueryBuilder('notification')
       .where('notification.userId = :userId', { userId: user.id })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('notification.duration != :oneOff', {
+            oneOff: NotificationDuration.ONE_OFF,
+          }).orWhere(
+            new Brackets((qb2) => {
+              qb2
+                .where('notification.duration = :oneOff', {
+                  oneOff: NotificationDuration.ONE_OFF,
+                })
+                .andWhere('notification.isRead = false');
+            }),
+          );
+        }),
+      )
       .orderBy('notification.createdAt', 'DESC');
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListNotificationResponseDto, {
       data,
@@ -98,22 +110,13 @@ export class NotificationService extends BaseService {
   }
 
   async markAllRead(user: UserRequestPayload): Promise<SuccessResponseDto> {
-    await this.notificationRepo.update(
-      { userId: user.id, isRead: false },
-      { isRead: true },
-    );
+    await this.notificationRepo.update({ userId: user.id, isRead: false }, { isRead: true });
 
     return this.successResponse();
   }
 
-  async markRead(
-    user: UserRequestPayload,
-    notificationId: string,
-  ): Promise<SuccessResponseDto> {
-    await this.notificationRepo.update(
-      { id: notificationId, userId: user.id },
-      { isRead: true },
-    );
+  async markRead(user: UserRequestPayload, notificationId: string): Promise<SuccessResponseDto> {
+    await this.notificationRepo.update({ id: notificationId, userId: user.id }, { isRead: true });
     return this.successResponse();
   }
 }

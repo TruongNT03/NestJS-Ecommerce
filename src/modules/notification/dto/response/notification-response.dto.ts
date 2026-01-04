@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
 
 @Exclude()
 export class NotificationResponseDto {
@@ -18,6 +19,14 @@ export class NotificationResponseDto {
   @Expose()
   @ApiProperty({ type: String })
   triggerBy: string;
+
+  @Expose()
+  @ApiProperty({ enum: NotificationType })
+  type: NotificationType;
+
+  @Expose()
+  @ApiProperty({ enum: NotificationDuration })
+  duration: NotificationDuration;
 
   @Expose()
   @ApiProperty({ type: String })

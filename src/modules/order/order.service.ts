@@ -233,6 +233,7 @@ export class OrderService extends BaseService {
     const queryBuilder = this.orderRepo
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.address', 'address')
+      .leftJoinAndSelect('order.payment', 'payment')
       .leftJoinAndSelect('order.orderItems', 'orderItems')
       .leftJoinAndSelect('order.voucher', 'voucher')
       .leftJoinAndSelect('orderItems.productVariant', 'productVariant')
@@ -266,6 +267,8 @@ export class OrderService extends BaseService {
               0,
             ),
           voucher: order.voucher,
+          qrUrl: order?.payment?.qrImageUrl,
+          qrStatus: order?.payment?.status,
           createdAt: order.createdAt,
         }),
       ),
@@ -274,10 +277,25 @@ export class OrderService extends BaseService {
   }
 
   async cancelQrOrder(orderId: string): Promise<SuccessResponseDto> {
-    const order = await this.orderRepo.findOneBy({ id: orderId });
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['orderItems'],
+    });
     if (!order) {
       throw new ServerException(ERROR_RESPONSE.NOT_FOUND);
     }
+
+    await Promise.all(
+      order.orderItems.map(async (orderItem) => {
+        const productVariant = await this.productVariantRepo.findOne({
+          where: { id: orderItem.productVariantId },
+        });
+        await this.productVariantRepo.save({
+          id: productVariant.id,
+          stock: productVariant.stock + orderItem.quantity,
+        });
+      }),
+    );
 
     await this.orderRepo.update({ id: orderId }, { status: OrderStatus.CANCEL });
     await this.paymentRepo.update({ orderId }, { status: PaymentStatus.CANCEL });

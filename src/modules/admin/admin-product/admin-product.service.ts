@@ -430,9 +430,11 @@ export class AdminProductService extends BaseService {
             })),
           })),
         );
-      } else {
+
         // If array empty or undefined delete all old Product Variant
-        await queryRunner.manager.delete(ProductVariant, { productId: id });
+        await queryRunner.manager.delete(ProductVariant, {
+          id: In(deleteProductVariants.map((deleteProductVariant) => deleteProductVariant.id)),
+        });
       }
 
       await queryRunner.commitTransaction();

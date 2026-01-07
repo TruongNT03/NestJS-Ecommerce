@@ -154,11 +154,7 @@ export class AdminProductService extends BaseService {
 
     const queryBuilder = await this.getQueryBuilderFindAllProduct(query);
 
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
 
     return plainToInstance(ListProductResponseDto, {
       data,
@@ -226,9 +222,7 @@ export class AdminProductService extends BaseService {
     return this.successResponse();
   }
 
-  async findAllVariant(
-    query: VariantQueryDto,
-  ): Promise<ListVariantResponseDto> {
+  async findAllVariant(query: VariantQueryDto): Promise<ListVariantResponseDto> {
     const { page, pageSize, keyword } = query;
     const queryBuilder = this.variantRepo.createQueryBuilder('v');
     if (keyword) {
@@ -236,11 +230,7 @@ export class AdminProductService extends BaseService {
         keyword: `%${keyword.toLowerCase()}%`,
       });
     }
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
     return plainToInstance(ListVariantResponseDto, {
       data: plainToInstance(VariantResponseDto, data),
       paginate,
@@ -286,20 +276,16 @@ export class AdminProductService extends BaseService {
     });
 
     // Find exist Product Variant in request
-    const existProductVariants = allExistProductVariants.filter(
-      (productVariant) =>
-        productVariantIdsFromRequest.includes(productVariant.id),
+    const existProductVariants = allExistProductVariants.filter((productVariant) =>
+      productVariantIdsFromRequest.includes(productVariant.id),
     );
 
     // Find new Product Variant from request without id
-    const newProductVariants = updateProductVariants.filter(
-      (productVariant) => !productVariant.id,
-    );
+    const newProductVariants = updateProductVariants.filter((productVariant) => !productVariant.id);
 
     // Need deleted Product Variant
     const deleteProductVariants = allExistProductVariants.filter(
-      (productVariant) =>
-        !productVariantIdsFromRequest.includes(productVariant.id),
+      (productVariant) => !productVariantIdsFromRequest.includes(productVariant.id),
     );
     return { existProductVariants, newProductVariants, deleteProductVariants };
   }
@@ -336,9 +322,7 @@ export class AdminProductService extends BaseService {
               productVariant.sku &&
               (await this.checkExistProductVariantSku(productVariant.sku))
             ) {
-              errorMessages.push(
-                `Product sku #${productVariant.sku} is already exist.`,
-              );
+              errorMessages.push(`Product sku #${productVariant.sku} is already exist.`);
             }
           }),
         );
@@ -408,19 +392,27 @@ export class AdminProductService extends BaseService {
         );
       }
 
+      if (!hasVariant) {
+        await this.productVariantRepo.update(
+          {
+            productId: id,
+          },
+          {
+            price,
+            stock,
+            sku,
+          },
+        );
+      }
+
       // Update Product Variants
-      if (productVariants && productVariants.length) {
-        const {
-          deleteProductVariants,
-          existProductVariants,
-          newProductVariants,
-        } = await this.getChangeProductVariant(productVariants, id);
+      if (productVariants && productVariants.length && hasVariant) {
+        const { deleteProductVariants, existProductVariants, newProductVariants } =
+          await this.getChangeProductVariant(productVariants, id);
 
         // Delete Product Variant do not need
         await queryRunner.manager.delete(ProductVariant, {
-          id: In(
-            deleteProductVariants.map((productVariant) => productVariant.id),
-          ),
+          id: In(deleteProductVariants.map((productVariant) => productVariant.id)),
         });
 
         // Update Product Variant
@@ -432,9 +424,9 @@ export class AdminProductService extends BaseService {
           newProductVariants?.map((newProductVariant) => ({
             ...newProductVariant,
             productId: product.id,
-            variantValues: newProductVariant.variantValueIds.map(
-              (variantValueId) => ({ id: variantValueId }),
-            ),
+            variantValues: newProductVariant.variantValueIds.map((variantValueId) => ({
+              id: variantValueId,
+            })),
           })),
         );
       } else {
@@ -452,10 +444,7 @@ export class AdminProductService extends BaseService {
     }
   }
 
-  async updateStatus(
-    id: string,
-    dto: UpdateProductStatusDto,
-  ): Promise<SaveUuidResponseDto> {
+  async updateStatus(id: string, dto: UpdateProductStatusDto): Promise<SaveUuidResponseDto> {
     const nextStatus = dto.status;
     // Find Product
     const product = await this.productRepo.findOne({
@@ -472,10 +461,7 @@ export class AdminProductService extends BaseService {
     const currentStatus = product.status;
     // Check mandatory if change from unpublished to published
     // Nothing to check
-    if (
-      currentStatus === ProductStatus.PUBLISHED &&
-      nextStatus === ProductStatus.UNPUBLISHED
-    ) {
+    if (currentStatus === ProductStatus.PUBLISHED && nextStatus === ProductStatus.UNPUBLISHED) {
       product.status = nextStatus;
       await this.productRepo.save(product);
       return this.saveUuidResponse(product.id);
@@ -493,28 +479,20 @@ export class AdminProductService extends BaseService {
     if (!product.description) {
       errorMessages.push(`Field description must not empty.`);
     }
-    if (
-      product.productVariants.some((productVariant) => !productVariant.price)
-    ) {
+    if (product.productVariants.some((productVariant) => !productVariant.price)) {
       errorMessages.push(`Field price of Product Variant must not empty.`);
     }
     if (product.productVariants.some((productVariant) => !productVariant.sku)) {
       errorMessages.push(`Field sku of Product Variant must not empty.`);
     }
-    if (
-      product.productVariants.some((productVariant) => !productVariant.stock)
-    ) {
+    if (product.productVariants.some((productVariant) => !productVariant.stock)) {
       errorMessages.push(`Field stock of Product Variant must not empty.`);
     }
     if (
       product.hasVariant === true &&
-      product.productVariants.some(
-        (productVariant) => !productVariant.variantValues,
-      )
+      product.productVariants.some((productVariant) => !productVariant.variantValues)
     ) {
-      errorMessages.push(
-        `Field variant value of Product Variant must not empty.`,
-      );
+      errorMessages.push(`Field variant value of Product Variant must not empty.`);
     }
 
     // Check unique field
@@ -523,15 +501,11 @@ export class AdminProductService extends BaseService {
       status: ProductStatus.PUBLISHED,
     });
     if (existNameProduct) {
-      errorMessages.push(
-        `Product name #${existNameProduct.name} already exist.`,
-      );
+      errorMessages.push(`Product name #${existNameProduct.name} already exist.`);
     }
     const existSkuProductVariants = await this.productVariantRepo.find({
       where: {
-        sku: In(
-          product.productVariants.map((productVariant) => productVariant.sku),
-        ),
+        sku: In(product.productVariants.map((productVariant) => productVariant.sku)),
         product: {
           status: ProductStatus.PUBLISHED,
         },
@@ -540,9 +514,7 @@ export class AdminProductService extends BaseService {
 
     if (existSkuProductVariants.length) {
       existSkuProductVariants.forEach((existSkuProductVariant) =>
-        errorMessages.push(
-          `Product sku #${existSkuProductVariant.sku} already exist.`,
-        ),
+        errorMessages.push(`Product sku #${existSkuProductVariant.sku} already exist.`),
       );
     }
 
@@ -561,16 +533,10 @@ export class AdminProductService extends BaseService {
 
   async uploadProductImage(dto: UploadDto): Promise<UploadResponseDto> {
     const { fileName, contentType } = dto;
-    return await this.s3Service.getPresign(
-      fileName,
-      contentType,
-      BucketFolder.PRODUCT_IMAGE,
-    );
+    return await this.s3Service.getPresign(fileName, contentType, BucketFolder.PRODUCT_IMAGE);
   }
 
-  async createVariantValue(
-    dto: CreateVariantValueDto,
-  ): Promise<SuccessResponseDto> {
+  async createVariantValue(dto: CreateVariantValueDto): Promise<SuccessResponseDto> {
     const { value, variantId } = dto;
     await this.variantValueRepo.save({
       value,
@@ -579,9 +545,7 @@ export class AdminProductService extends BaseService {
     return this.successResponse();
   }
 
-  async findAllVariantValue(
-    query: VariantValueQueryDto,
-  ): Promise<ListVariantValueResponseDto> {
+  async findAllVariantValue(query: VariantValueQueryDto): Promise<ListVariantValueResponseDto> {
     const { variantId, keyword, pageSize, page } = query;
 
     const queryBuilder = this.variantValueRepo
@@ -594,11 +558,7 @@ export class AdminProductService extends BaseService {
         keyword: `%${keyword.toLowerCase()}%`,
       });
     }
-    const { data, paginate } = await this.paginate(
-      queryBuilder,
-      page,
-      pageSize,
-    );
+    const { data, paginate } = await this.paginate(queryBuilder, page, pageSize);
     return plainToInstance(ListVariantValueResponseDto, {
       data: plainToInstance(VariantValueResponseDto, data),
       paginate,

@@ -75,6 +75,7 @@ export class UpdateProductDto {
   categoryIds: number[];
 
   @ApiPropertyOptional({ type: [UpdateProductVariantDto] })
+  @IsOptional()
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })

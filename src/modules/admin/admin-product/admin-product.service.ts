@@ -394,16 +394,26 @@ export class AdminProductService extends BaseService {
 
       // If not have variant
       if (!hasVariant) {
-        await this.productVariantRepo.update(
-          {
+        const oldProductVariant = await this.productImageRepo.findOne({ where: { productId: id } });
+        if (oldProductVariant) {
+          await this.productVariantRepo.update(
+            {
+              productId: id,
+            },
+            {
+              price,
+              stock,
+              sku,
+            },
+          );
+        } else {
+          await this.productVariantRepo.save({
             productId: id,
-          },
-          {
             price,
             stock,
             sku,
-          },
-        );
+          });
+        }
       }
 
       // Update Product Variants

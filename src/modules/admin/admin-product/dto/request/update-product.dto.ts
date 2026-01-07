@@ -77,7 +77,6 @@ export class UpdateProductDto {
   @ApiPropertyOptional({ type: [UpdateProductVariantDto] })
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => UpdateProductVariantDto)
   productVariants: UpdateProductVariantDto[];

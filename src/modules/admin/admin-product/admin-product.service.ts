@@ -392,6 +392,7 @@ export class AdminProductService extends BaseService {
         );
       }
 
+      // If not have variant
       if (!hasVariant) {
         await this.productVariantRepo.update(
           {

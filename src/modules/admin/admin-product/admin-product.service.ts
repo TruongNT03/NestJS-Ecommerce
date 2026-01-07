@@ -392,30 +392,6 @@ export class AdminProductService extends BaseService {
         );
       }
 
-      // If not have variant
-      if (!hasVariant) {
-        const oldProductVariant = await this.productImageRepo.findOne({ where: { productId: id } });
-        if (oldProductVariant) {
-          await this.productVariantRepo.update(
-            {
-              productId: id,
-            },
-            {
-              price,
-              stock,
-              sku,
-            },
-          );
-        } else {
-          await this.productVariantRepo.save({
-            productId: id,
-            price,
-            stock,
-            sku,
-          });
-        }
-      }
-
       // Update Product Variants
       if (productVariants && productVariants.length && hasVariant) {
         const { deleteProductVariants, existProductVariants, newProductVariants } =
@@ -445,6 +421,33 @@ export class AdminProductService extends BaseService {
         await queryRunner.manager.delete(ProductVariant, {
           id: In(deleteProductVariants.map((deleteProductVariant) => deleteProductVariant.id)),
         });
+      }
+
+      // If don't have variant
+      if (!hasVariant) {
+        const oldProductVariant = await queryRunner.manager.findOne(ProductVariant, {
+          where: { productId: id },
+        });
+        if (oldProductVariant) {
+          await queryRunner.manager.update(
+            ProductVariant,
+            {
+              productId: id,
+            },
+            {
+              price,
+              stock,
+              sku,
+            },
+          );
+        } else {
+          await queryRunner.manager.save(ProductVariant, {
+            productId: id,
+            price,
+            stock,
+            sku,
+          });
+        }
       }
 
       await queryRunner.commitTransaction();

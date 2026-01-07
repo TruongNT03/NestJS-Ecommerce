@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/base.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Order } from 'src/entities/order.entity';
 import * as dayjs from 'dayjs';
 import { AdminDashboardStatisticResponseDto } from './dto/response/admin-dashboard-statistic-response.dto';
@@ -45,44 +45,19 @@ export class AdminDashboardService extends BaseService {
     const { statisticBy } = dto;
 
     const currentDate = new Date();
-    const day = currentDate.getDate();
-    const month = currentDate.getMonth() + 1;
     const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const day = currentDate.getDate();
 
-    const newUserQueryBuilder = this.userRepo
-      .createQueryBuilder('user')
-      .where('EXTRACT(YEAR FROM "user"."created_at") = :year', { year });
-
-    const newOrderQueryBuilder = this.orderRepo
-      .createQueryBuilder('order')
-      .where('EXTRACT(YEAR FROM "order"."created_at") = :year', { year });
-
-    if (statisticBy === AdminDashboardStatisticBy.MONTH) {
-      newUserQueryBuilder.andWhere('EXTRACT(MONTH FROM "user"."created_at") = :month', {
-        month,
-      });
-      newOrderQueryBuilder.andWhere('EXTRACT(MONTH FROM "order"."created_at") = :month', {
-        month,
-      });
-    } else if (statisticBy === AdminDashboardStatisticBy.DAY || !statisticBy) {
-      newUserQueryBuilder.andWhere('EXTRACT(MONTH FROM "user"."created_at") = :month', {
-        month,
-      });
-      newUserQueryBuilder.andWhere('EXTRACT(DAY FROM "user"."created_at") = :day', { day });
-
-      newOrderQueryBuilder.andWhere('EXTRACT(MONTH FROM "order"."created_at") = :month', {
-        month,
-      });
-      newOrderQueryBuilder.andWhere('EXTRACT(DAY FROM "order"."created_at") = :day', { day });
+    if (statisticBy === AdminDashboardStatisticBy.YEAR) {
+      return await this.getStatisticByYear(year);
     }
-
-    const revenue = 0;
-
-    return {
-      newOrderCount: await newOrderQueryBuilder.getCount(),
-      newUserCount: await newUserQueryBuilder.getCount(),
-      revenue,
-    };
+    if (statisticBy === AdminDashboardStatisticBy.MONTH) {
+      return await this.getStatisticByMonth(month, year);
+    }
+    if (statisticBy === AdminDashboardStatisticBy.DAY) {
+      return await this.getStatisticByDay(day, month, year);
+    }
   }
 
   async getLastThirtyDayChartData(): Promise<AdminRevenueResponseDto[]> {
@@ -158,5 +133,95 @@ export class AdminDashboardService extends BaseService {
       });
     }
     return plainToInstance(AdminDashboardPendingOrderResponseDto, result);
+  }
+
+  private calculatorRevenue(orders: Order[]): number {
+    let total = 0;
+    orders.map((order) => {
+      total += order.finalPrice;
+    });
+    return total;
+  }
+
+  private async getStatisticByYear(year: number): Promise<AdminDashboardStatisticResponseDto> {
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31, 23, 59, 59, 999);
+
+    const users = await this.userRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const orders = await this.orderRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const revenue = this.calculatorRevenue(orders);
+
+    return plainToInstance(AdminDashboardStatisticResponseDto, {
+      newUserCount: users.length,
+      newOrderCount: orders.length,
+      revenue,
+    });
+  }
+
+  private async getStatisticByMonth(
+    month: number,
+    year: number,
+  ): Promise<AdminDashboardStatisticResponseDto> {
+    const start = new Date(year, month, 1);
+    const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
+    const users = await this.userRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const orders = await this.orderRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const revenue = this.calculatorRevenue(orders);
+
+    return plainToInstance(AdminDashboardStatisticResponseDto, {
+      newUserCount: users.length,
+      newOrderCount: orders.length,
+      revenue,
+    });
+  }
+
+  private async getStatisticByDay(
+    day: number,
+    month: number,
+    year: number,
+  ): Promise<AdminDashboardStatisticResponseDto> {
+    const start = new Date(year, month, day, 0);
+    const end = new Date(year, month, day, 23, 59, 59, 999);
+
+    const users = await this.userRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const orders = await this.orderRepo.find({
+      where: {
+        createdAt: Between(start, end),
+      },
+    });
+
+    const revenue = this.calculatorRevenue(orders);
+
+    return plainToInstance(AdminDashboardStatisticResponseDto, {
+      newUserCount: users.length,
+      newOrderCount: orders.length,
+      revenue,
+    });
   }
 }

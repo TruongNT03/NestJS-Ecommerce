@@ -403,7 +403,12 @@ export class AdminProductService extends BaseService {
         });
 
         // Update Product Variant
-        await queryRunner.manager.save(ProductVariant, existProductVariants);
+        const listUpdateProductVariant = productVariants.filter((productVariant) =>
+          existProductVariants
+            .map((existProductVariant) => existProductVariant.id)
+            .includes(productVariant?.id),
+        );
+        await queryRunner.manager.save(ProductVariant, listUpdateProductVariant);
 
         // Create Product Variant
         await queryRunner.manager.save(
@@ -416,11 +421,6 @@ export class AdminProductService extends BaseService {
             })),
           })),
         );
-
-        // If array empty or undefined delete all old Product Variant
-        await queryRunner.manager.delete(ProductVariant, {
-          id: In(deleteProductVariants.map((deleteProductVariant) => deleteProductVariant.id)),
-        });
       }
 
       // If don't have variant

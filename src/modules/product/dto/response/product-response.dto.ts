@@ -21,6 +21,10 @@ export class ProductResponseDto {
   price: number;
 
   @Expose()
+  @ApiProperty({ type: Number })
+  discount: number;
+
+  @Expose()
   @ApiProperty({ type: [ProductImageDetailResponseDto] })
   @Type(() => ProductImageDetailResponseDto)
   @Transform(({ value }) => (Array.isArray(value) ? value.sort((a, b) => a.id - b.id) : []))

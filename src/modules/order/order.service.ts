@@ -74,7 +74,7 @@ export class OrderService extends BaseService {
       // Check cart items
       const cartItems = await queryRunner.manager.find(CartItem, {
         where: { id: In(cartItemIds) },
-        relations: ['productVariant'],
+        relations: ['productVariant', 'productVariant.product'],
       });
 
       if (!cartItems || cartItemIds.length !== cartItems.length) {
@@ -107,9 +107,19 @@ export class OrderService extends BaseService {
       );
 
       // Calculate total price
-      const totalPrice = cartItems
-        .map((cartItem) => cartItem.quantity * cartItem.productVariant.price)
-        .reduce((sum, current) => (sum += current), 0);
+      let totalPrice = 0;
+
+      cartItems.map((cartItem) => {
+        if (cartItem.productVariant.product.discount) {
+          totalPrice +=
+            cartItem.quantity * cartItem.productVariant.price -
+            cartItem.productVariant.product.discount;
+        } else {
+          totalPrice += cartItem.quantity * cartItem.productVariant.price;
+        }
+      });
+
+      console.log(totalPrice);
 
       // Voucher
       let discountPrice: number;
@@ -162,6 +172,7 @@ export class OrderService extends BaseService {
           },
         );
       }
+
       // Create order
       const order = await queryRunner.manager.save(
         Order,

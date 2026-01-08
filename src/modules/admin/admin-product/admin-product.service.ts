@@ -71,6 +71,7 @@ export class AdminProductService extends BaseService {
       hasVariant,
       productVariants,
       categoryIds,
+      discount,
     } = dto;
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.startTransaction();
@@ -80,6 +81,7 @@ export class AdminProductService extends BaseService {
         name,
         description,
         hasVariant,
+        discount,
         status,
       });
 
@@ -302,6 +304,7 @@ export class AdminProductService extends BaseService {
       price,
       sku,
       stock,
+      discount,
     } = dto;
 
     // Check mandatory field if status is published
@@ -353,6 +356,7 @@ export class AdminProductService extends BaseService {
           name,
           description,
           status,
+          discount,
         },
       );
 

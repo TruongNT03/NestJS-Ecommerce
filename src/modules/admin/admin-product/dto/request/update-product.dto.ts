@@ -49,6 +49,11 @@ export class UpdateProductDto {
   @IsNumber()
   stock?: number;
 
+  @ApiPropertyOptional({ type: Number })
+  @IsOptional()
+  @IsNumber()
+  discount?: number;
+
   @ApiPropertyOptional({ type: String, example: 'AOTHUN-001' })
   @ValidateIf((o) => !o.hasVariant && o.status === ProductStatus.PUBLISHED)
   @IsString()

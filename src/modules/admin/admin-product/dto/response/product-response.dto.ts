@@ -1,11 +1,5 @@
-import {
-  Exclude,
-  Expose,
-  plainToInstance,
-  Transform,
-  Type,
-} from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { Exclude, Expose, plainToInstance, Transform, Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductStatus } from 'src/common/enum/product-status.enum';
 import { Variant } from 'src/entities/variant.entity';
 
@@ -13,9 +7,7 @@ import { Variant } from 'src/entities/variant.entity';
 export class VariantValuesResponseDto {
   @Expose()
   @ApiProperty({ type: String, example: 'Size' })
-  @Transform(({ value }: { value: Variant }) =>
-    value.name ? value.name : value,
-  )
+  @Transform(({ value }: { value: Variant }) => (value.name ? value.name : value))
   variant: string;
 
   @Expose()
@@ -64,6 +56,10 @@ export class AdminProductResponseDto {
   @Expose()
   @ApiProperty({ enum: ProductStatus })
   status: ProductStatus;
+
+  @Expose()
+  @ApiPropertyOptional({ type: Number })
+  discount: number;
 
   @Expose()
   @ApiProperty({ type: Boolean })

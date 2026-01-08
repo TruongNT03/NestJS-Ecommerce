@@ -76,7 +76,7 @@ export class PaymentService extends BaseService {
 
     const createPaymentLinkResponse = await this.payOS.paymentRequests.create({
       orderCode: orderCode,
-      amount: amount,
+      amount: order.finalPrice,
       description: `${orderCode}`,
       buyerName: order.user.name,
       buyerAddress: order.address.detail,

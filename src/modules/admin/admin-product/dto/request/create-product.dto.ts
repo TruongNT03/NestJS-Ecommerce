@@ -46,6 +46,11 @@ export class CreateProductDto {
   @IsNumber()
   price?: number;
 
+  @ApiPropertyOptional({ type: Number })
+  @IsOptional()
+  @IsNumber()
+  discount?: number;
+
   @ApiPropertyOptional({ type: Number, example: 50 })
   @ValidateIf((o) => !o.hasVariant && o.status === ProductStatus.PUBLISHED)
   @IsNumber()

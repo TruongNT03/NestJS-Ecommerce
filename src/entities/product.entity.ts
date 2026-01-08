@@ -1,11 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { AbstractEntity } from 'src/entities/abstract.entity';
 import { Categories } from 'src/entities/categories.entity';
 import { ProductVariant } from 'src/entities/product-variant.entity';
@@ -28,6 +21,9 @@ export class Product extends AbstractEntity<Product> {
 
   @Column()
   status: ProductStatus;
+
+  @Column()
+  discount: number;
 
   @Column()
   hasVariant: boolean;

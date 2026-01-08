@@ -27,6 +27,10 @@ export class AdminProductDetailResponseDto {
   hasVariant: boolean;
 
   @Expose()
+  @ApiProperty({ type: Number })
+  discount: number;
+
+  @Expose()
   @ApiProperty({ enum: ProductStatus })
   status: ProductStatus;
 

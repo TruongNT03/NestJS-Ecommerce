@@ -26,6 +26,10 @@ export class ProductDetailResponseDto {
   price: number;
 
   @Expose()
+  @ApiProperty({ type: Number })
+  discount: number;
+
+  @Expose()
   @ApiProperty()
   totalRating: number;
 

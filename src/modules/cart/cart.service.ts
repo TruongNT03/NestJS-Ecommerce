@@ -49,6 +49,7 @@ export class CartService extends BaseService {
     let existCartItem = await this.cartItemRepo.findOne({
       where: {
         productVariantId: productVariantId,
+        cartId: cart.id,
       },
     });
 

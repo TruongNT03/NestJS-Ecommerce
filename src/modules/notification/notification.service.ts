@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
 import { Brackets, Repository } from 'typeorm';
@@ -14,6 +14,8 @@ import { plainToInstance } from 'class-transformer';
 import { TotalUnreadNotificationResponseDto } from './dto/response/total-unread-response.dto';
 import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { NotificationDuration } from 'src/common/enum/notification.enum';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class NotificationService extends BaseService {
@@ -23,6 +25,8 @@ export class NotificationService extends BaseService {
     private readonly notificationRepo: Repository<Notification>,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
   ) {
     super();
   }
@@ -32,6 +36,7 @@ export class NotificationService extends BaseService {
     if (!userId) {
       // Notification to all user by role
       const userListByRole = await this.getUserListByRole(alertTo);
+      console.log(userListByRole);
       await Promise.all(
         userListByRole.map(async (user) => {
           const notification = await this.notificationRepo.save({
@@ -40,6 +45,10 @@ export class NotificationService extends BaseService {
           });
           // Send notification real-time by socket gateway
           await this.notificationGateway.sendToUserId(user.id, notification);
+
+          this.logger.info(`Send message to user ${user.id} successfully`, {
+            context: 'NotificationService.create',
+          });
         }),
       );
     } else {

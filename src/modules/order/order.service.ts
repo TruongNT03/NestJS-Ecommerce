@@ -30,6 +30,12 @@ import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 import { Payment } from 'src/entities/payment.entity';
 import { Voucher, VoucherType } from 'src/entities/voucher.entity';
 import { UserVoucher } from 'src/entities/user-voucher.entity';
+import { SaveNotificationDto } from '../notification/dto/request/save-notification.dto';
+import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
+import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to.enum';
+import { RoleType } from 'src/common/enum/role.enum';
+import { NotificationService } from '../notification/notification.service';
+import { formatPriceVND } from 'src/common/utils/formatPriceVND';
 
 @Injectable()
 export class OrderService extends BaseService {
@@ -47,6 +53,7 @@ export class OrderService extends BaseService {
     private readonly logger: Logger,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
+    private readonly notificationService: NotificationService,
   ) {
     super();
   }
@@ -223,6 +230,35 @@ export class OrderService extends BaseService {
       }
 
       await queryRunner.commitTransaction();
+      const orderManagerNotification: SaveNotificationDto = {
+        title: 'Có đơn hàng mới',
+        content: `Có đơn đặt hàng mới với giá trị ${formatPriceVND(order.finalPrice)} bằng phương thức ${order.paymentMethod === PaymentType.COD ? 'Ship COD' : 'Thanh toán bằng QR'}`,
+        duration: NotificationDuration.FOREVER,
+        navigateTo: NotificationNavigateTo.ORDER_DETAIL_PAGE,
+        triggerBy: 'Người dùng đặt hàng',
+        type: NotificationType.ORDER,
+        alertTo: RoleType.ORDER_MANAGER,
+        meta: {
+          orderId: order.id,
+          finalPrice: order.finalPrice,
+        },
+      };
+      const adminNotification: SaveNotificationDto = {
+        title: 'Có đơn hàng mới',
+        content: `Có đơn đặt hàng mới với giá trị ${formatPriceVND(order.finalPrice)} bằng phương thức ${order.paymentMethod === PaymentType.COD ? 'Ship COD' : 'Thanh toán bằng QR'}`,
+        duration: NotificationDuration.FOREVER,
+        navigateTo: NotificationNavigateTo.ORDER_DETAIL_PAGE,
+        triggerBy: 'Người dùng đặt hàng',
+        type: NotificationType.ORDER,
+        alertTo: RoleType.ADMIN,
+        meta: {
+          orderId: order.id,
+          finalPrice: order.finalPrice,
+        },
+      };
+
+      await this.notificationService.create(orderManagerNotification);
+      await this.notificationService.create(adminNotification);
       return this.saveUuidResponse(order.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();

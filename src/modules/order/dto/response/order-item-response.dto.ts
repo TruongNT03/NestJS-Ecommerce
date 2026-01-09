@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ProductImageDetailResponseDto } from 'src/modules/admin/admin-product/dto/response/product-image-detail-response.dto';
 import { VariantValuesResponseDto } from 'src/modules/admin/admin-product/dto/response/product-response.dto';
@@ -13,6 +13,10 @@ export class OrderItemProductResponseDto {
   @Expose()
   @ApiProperty({ type: String })
   name: string;
+
+  @Expose()
+  @ApiPropertyOptional({ type: Number })
+  discount?: number;
 
   @Expose()
   @ApiProperty({ type: String })

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities/notification.entity';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, EntityManager, Repository } from 'typeorm';
 import { NotificationGateway } from 'src/modules/notification/notification.gateway';
 import { SaveNotificationDto } from 'src/modules/notification/dto/request/save-notification.dto';
 import { RoleType } from 'src/common/enum/role.enum';
@@ -31,7 +31,7 @@ export class NotificationService extends BaseService {
     super();
   }
 
-  async create(dto: SaveNotificationDto): Promise<Notification> {
+  async create(dto: SaveNotificationDto, manager?: EntityManager): Promise<Notification> {
     const { userId, alertTo } = dto;
     if (!userId) {
       // Notification to all user by role

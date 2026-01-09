@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from 'src/base.service';
 import { Order } from 'src/entities/order.entity';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 import { AdminListOrderQueryDto } from './dto/request/admin-list-order-query.dto';
 import { AdminListOrderResponseDto } from './dto/response/admin-list-order-response.dto';
 import { plainToInstance } from 'class-transformer';
@@ -22,12 +22,18 @@ import { NotificationNavigateTo } from 'src/common/enum/notification-navigate-to
 import { AdminUpdateOrderPaymentStatusDto } from './dto/request/admin-update-order-payment-status.dto';
 import { AdminOrderStaticResponseDto } from './dto/response/admin-order-static-response.dto';
 import { NotificationDuration, NotificationType } from 'src/common/enum/notification.enum';
+import { ProductVariant } from 'src/entities/product-variant.entity';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class AdminOrderService extends BaseService {
   constructor(
     @InjectRepository(Order) private readonly orderRepo: Repository<Order>,
     private readonly notificationService: NotificationService,
+    private readonly dataSource: DataSource,
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
   ) {
     super();
   }
@@ -109,19 +115,60 @@ export class AdminOrderService extends BaseService {
   async updateOrderStatus(id: string, dto: AdminUpdateOrderStatusDto): Promise<SuccessResponseDto> {
     const { status } = dto;
 
-    const order = await this.orderRepo.findOneBy({ id });
-    if (!order) {
-      throw new ServerException({
-        ...ERROR_RESPONSE.NOT_FOUND,
-        message: 'Order not found',
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const order = await this.dataSource.manager.findOne(Order, {
+        where: { id },
+        relations: ['orderItems'],
       });
+      if (!order) {
+        throw new ServerException({
+          ...ERROR_RESPONSE.NOT_FOUND,
+          message: 'Order not found',
+        });
+      }
+
+      await this.dataSource.manager.update(Order, { id }, { status });
+
+      // Cancel back stock product variant
+      if (status === OrderStatus.CANCEL) {
+        await Promise.all(
+          order.orderItems.map(async (order) => {
+            const productVariant = await queryRunner.manager.findOne(ProductVariant, {
+              where: { id: order.productVariantId },
+            });
+
+            await queryRunner.manager.update(
+              ProductVariant,
+              {
+                id: order.productVariantId,
+              },
+              { stock: productVariant.stock + order.quantity },
+            );
+          }),
+        );
+      }
+
+      const notification = this.createOrderNotification(order.userId, order.status, status, id);
+      await this.notificationService.create(notification, queryRunner.manager);
+
+      await queryRunner.commitTransaction();
+      return this.successResponse();
+    } catch (error) {
+      this.logger.error('Fail to update order status', {
+        context: 'AdminOrderService.updateOrderStatus',
+        error: {
+          ...error,
+          payload: dto,
+        },
+      });
+      await queryRunner.rollbackTransaction();
+      throw new ServerException(ERROR_RESPONSE.BAD_REQUEST);
+    } finally {
+      await queryRunner.release();
     }
-
-    await this.orderRepo.update({ id }, { status });
-    const notification = this.createOrderNotification(order.userId, order.status, status, id);
-    await this.notificationService.create(notification);
-
-    return this.successResponse();
   }
 
   async updatePaymentStatus(

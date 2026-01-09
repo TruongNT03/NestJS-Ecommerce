@@ -70,6 +70,14 @@ export class OrderItemResponseDto {
 
   @Expose()
   @ApiProperty({ type: Number })
+  currentPrice: number;
+
+  @Expose()
+  @ApiProperty({ type: Number })
+  currentDiscount: number;
+
+  @Expose()
+  @ApiProperty({ type: Number })
   quantity: number;
 
   @Expose()

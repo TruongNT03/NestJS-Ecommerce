@@ -205,6 +205,8 @@ export class OrderService extends BaseService {
             orderId: order.id,
             productVariantId: cartItem.productVariantId,
             quantity: cartItem.quantity,
+            currentDiscount: cartItem.productVariant.product.discount,
+            currentPrice: cartItem.productVariant.price,
           });
         }),
       );

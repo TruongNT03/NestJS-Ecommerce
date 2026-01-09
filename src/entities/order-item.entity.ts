@@ -1,11 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Order } from './order.entity';
 import { ProductVariant } from './product-variant.entity';
 
@@ -21,6 +14,12 @@ export class OrderItem {
 
   @Column()
   productVariantId: string;
+
+  @Column()
+  currentPrice: number;
+
+  @Column()
+  currentDiscount: number;
 
   @Column()
   quantity: number;

@@ -68,7 +68,7 @@ export class AdminOrderService extends BaseService {
     return plainToInstance(AdminListOrderResponseDto, {
       data: data.map((order) => ({
         ...order,
-        amount: this.amountCalculator(order),
+        amount: order.finalPrice,
         userEmail: order.user.email,
       })),
       paginate,

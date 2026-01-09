@@ -79,7 +79,12 @@ export class ChatSharedGateway implements OnGatewayInit, OnGatewayConnection, On
       );
 
       // Check role ADMIN
-      if (userRequestPayload.roles.includes(RoleType.ADMIN)) {
+      if (
+        userRequestPayload.roles.includes(RoleType.ADMIN) ||
+        userRequestPayload.roles.includes(RoleType.ORDER_MANAGER) ||
+        userRequestPayload.roles.includes(RoleType.PRODUCT_MANAGER) ||
+        userRequestPayload.roles.includes(RoleType.TECHNICIAN)
+      ) {
         this.onlineUserService.addAdminOnline(user.id, client);
       }
 

@@ -110,16 +110,18 @@ export class OrderService extends BaseService {
       let totalPrice = 0;
 
       cartItems.map((cartItem) => {
+        // For case product has discount value
         if (cartItem.productVariant.product.discount) {
           totalPrice +=
-            cartItem.quantity * cartItem.productVariant.price -
-            cartItem.productVariant.product.discount;
+            cartItem.quantity *
+            ((cartItem.productVariant.price * (100 - cartItem.productVariant.product.discount)) /
+              100);
+
+          // For case product has not discount value
         } else {
           totalPrice += cartItem.quantity * cartItem.productVariant.price;
         }
       });
-
-      console.log(totalPrice);
 
       // Voucher
       let discountPrice: number;

@@ -8,6 +8,8 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Max,
+  Min,
   Validate,
   ValidateIf,
   ValidateNested,
@@ -49,6 +51,8 @@ export class CreateProductDto {
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @IsNumber()
+  @Min(0)
+  @Max(100)
   discount?: number;
 
   @ApiPropertyOptional({ type: Number, example: 50 })

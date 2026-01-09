@@ -7,6 +7,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  Min,
   Validate,
   ValidateIf,
   ValidateNested,
@@ -52,6 +54,8 @@ export class UpdateProductDto {
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @IsNumber()
+  @Min(0)
+  @Max(100)
   discount?: number;
 
   @ApiPropertyOptional({ type: String, example: 'AOTHUN-001' })

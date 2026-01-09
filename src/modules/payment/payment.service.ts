@@ -45,7 +45,13 @@ export class PaymentService extends BaseService {
       where: {
         id: orderId,
       },
-      relations: ['user', 'address', 'orderItems', 'orderItems.productVariant'],
+      relations: [
+        'user',
+        'address',
+        'orderItems',
+        'orderItems.productVariant',
+        'orderItems.productVariant.product',
+      ],
     });
 
     if (!order) {
@@ -63,7 +69,14 @@ export class PaymentService extends BaseService {
       price: number;
       unit: string;
     }[] = order.orderItems.map((orderItem) => {
-      amount += orderItem.quantity * orderItem.productVariant.price;
+      if (orderItem.productVariant.product.discount) {
+        amount +=
+          orderItem.quantity *
+          ((orderItem.productVariant.price * (100 - orderItem.productVariant.product.discount)) /
+            100);
+      } else {
+        amount += orderItem.quantity * orderItem.productVariant.price;
+      }
       return {
         name: orderItem.productVariant.sku,
         quantity: orderItem.quantity,
@@ -114,7 +127,6 @@ export class PaymentService extends BaseService {
     id: string,
     user: UserRequestPayload,
   ): Promise<CheckPaymentStatusResponseDto> {
-    console.log(user);
     const payment = await this.paymentRepo.findOne({
       where: {
         id,
